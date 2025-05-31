@@ -1,6 +1,7 @@
 Package: energypal
-Title: A lightweight R package providing color palettes and styling tools for energy-related data visualization. 
+Title: Color palettes and styling tools for energy-related data visualization. 
 Version: 0.0.0.9000
+URL: https://github.com/optimal2050/energypal
 Authors@R: 
     person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).

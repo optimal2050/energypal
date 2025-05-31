@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# energypal
+# energypal <img src="man/figures/logo.png" align="right" height="136" alt="" />
 
 <!-- badges: start -->
 
@@ -13,7 +13,7 @@ status](https://www.r-pkg.org/badges/version/energypal)](https://CRAN.R-project.
 
 <!-- Please note that this project is currently under development. -->
 
-🚧 This is a *placeholder* for the energypal package. The goal of the
+🚧 This is a *placeholder* for the `energypal` package. The goal of the
 project is to assemble a curated collection of color palettes tailored
 for energy-related visualizations, ready to use with ggplot2 and other
 plotting frameworks. The palettes are inspired by — and occasionally
@@ -24,8 +24,8 @@ appeal in energy system research and communication.
 
 ## Installation
 
-🚧 Not yet available. The first public version of energypal will be
-available from [GitHub](https://github.com/):
+The first public version of `energypal` will be available for
+installation from [GitHub](https://github.com/optimal2050/energypal):
 
 ``` r
 # install.packages("pak")

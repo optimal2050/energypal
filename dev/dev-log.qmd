@@ -19,6 +19,8 @@ usethis::use_agpl3_license()
 ```{r}
 usethis::use_pkgdown()
 usethis::use_logo("tmp/logo_v01.png")
+pkgdown::build_favicons(overwrite = TRUE)
+
 pkgdown::build_site()
 pkgdown.offline::build_site()
 
