@@ -1,0 +1,28 @@
+---
+title: "Package creation log and development functions"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## Initiation
+(for the reference only, do not run)
+```{r, eval=FALSE}
+# usethis::create_tidy_package(getwd()) # run in console
+usethis::use_agpl3_license()
+
+```
+
+
+## Website
+```{r}
+usethis::use_pkgdown()
+usethis::use_logo("tmp/logo_v01.png")
+pkgdown::build_site()
+pkgdown.offline::build_site()
+
+
+
+```
+

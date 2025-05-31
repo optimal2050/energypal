@@ -1,0 +1,14 @@
+url: ~
+template:
+  bootstrap: 5
+  light-switch: true
+  bslib:
+    bootswatch: pulse
+    # bootswatch: spacelab
+    # bootswatch: quartz
+    # bootswatch: morph
+    # bootswatch: simplex
+    # bootswatch: litera
+    # bootswatch: vapor
+    # bootswatch: journal
+    # bootswatch: united
