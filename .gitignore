@@ -3,3 +3,12 @@
 .RData
 .Ruserdata
 
+# build artefacts
+*.Rcheck/
+*.tar.gz
+Rplots.pdf
+
+# archived debug output - the sources in drafts/ are kept, the plots are not
+drafts/scratch/figures/
+drafts/**/*.png
+drafts/**/*.pdf

@@ -6,3 +6,12 @@
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^drafts$
+^dev$
+^data-raw$
+^energypal\.code-workspace$
+^\.Rhistory$
+^\.github$
+^\.vscode$
+^.*\.Rcheck$
+^.*\.tar\.gz$
