@@ -1,14 +1,37 @@
 Package: energypal
-Title: Color palettes and styling tools for energy-related data visualization. 
+Title: Energy-Focused Color Palettes for Data Visualization
 Version: 0.0.0.9000
 URL: https://github.com/optimal2050/energypal
+BugReports: https://github.com/optimal2050/energypal/issues
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+    person("Energy", "Developer", , "developer@example.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Provides curated color palettes and intelligent mapping functions 
+    specifically designed for energy-related data visualizations. Includes 
+    palettes inspired by major energy organizations (IEA, EPA, EIA) and smart 
+    functions for mapping energy sources (coal, natural gas, renewables, etc.) 
+    to appropriate colors. Extends ggplot2 with specialized scale functions for 
+    fuel mix charts, choropleth maps, and other energy sector visualizations.
 License: AGPL (>= 3)
+Depends:
+    R (>= 3.6.0)
+Imports:
+    ggplot2 (>= 3.3.0),
+    scales (>= 1.1.0),
+    grDevices,
+    stringdist,
+    utils
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    dplyr,
+    tidyr,
+    sf,
+    maps
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
+VignetteBuilder: knitr
+LazyData: true
