@@ -7,18 +7,20 @@ editor_options:
 ---
 
 ## Initiation
+
 (for the reference only, do not run)
+
 ```{r, eval=FALSE}
 # usethis::create_tidy_package(getwd()) # run in console
 usethis::use_agpl3_license()
 
 ```
 
-
 ## Website
+
 ```{r}
-usethis::use_pkgdown()
-usethis::use_logo("tmp/logo_v01.png")
+# usethis::use_pkgdown()
+# usethis::use_logo("tmp/logo_v01.png")
 pkgdown::build_favicons(overwrite = TRUE)
 
 pkgdown::build_site()
@@ -27,4 +29,3 @@ pkgdown.offline::build_site()
 
 
 ```
-

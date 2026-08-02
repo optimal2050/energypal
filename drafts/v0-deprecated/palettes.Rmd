@@ -1,0 +1,567 @@
+---
+title: "Energy Color Palettes Reference"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Energy Color Palettes Reference}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 10,
+  fig.height = 6,
+  dev = "png",
+  dpi = 150,
+  eval = FALSE,
+  fig.path = "palettes-"
+)
+```
+
+```{r setup}
+library(energypal)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+```
+
+## Overview
+
+The `energypal` package provides six carefully curated color palettes designed specifically for energy data visualizations. Each palette is inspired by and adapted from color schemes used by major energy organizations and research institutions.
+
+The palettes are ordered by carbon intensity and intermittency principles:
+- **High carbon fuels first**: Coal, oil, natural gas
+- **Low carbon dispatchable**: Nuclear, hydro, geothermal, biomass  
+- **Variable renewables last**: Wind, solar
+
+This ordering creates intuitive visual progressions from "dirty" to "clean" energy sources.
+
+## All Available Palettes
+
+```{r all-palettes, fig.height=4, fig.width=10}
+# Display all palettes with white background for compatibility
+show_all_energy_palettes(ncol = 2, background_color = "white")
+```
+
+## Individual Palette Details
+
+### IEA Primary Palette
+
+Based on the International Energy Agency's World Energy Outlook 2023 color scheme.
+
+```{r iea-palette, fig.height=4, fig.width=10}
+# Display the IEA palette
+display_energy_palette("iea_primary", background_color = "white")
+
+# Show the color mapping
+iea_colors <- get_energy_palette("iea_primary")
+print(iea_colors)
+```
+
+**Source**: IEA World Energy Outlook 2023, Figure 1.6 "Global electricity generation by source"
+
+**Ordering Logic**: 
+- Coal (highest carbon) → Oil → Natural Gas → Nuclear (low carbon, dispatchable)
+- Biomass/Geothermal (renewable dispatchable) → Hydro → Other Renewables
+- Wind → Solar (variable renewables with highest intermittency)
+
+### EPA GHG Palette
+
+Adapted from U.S. Environmental Protection Agency greenhouse gas inventory reports.
+
+```{r epa-palette, fig.height=4, fig.width=10}
+display_energy_palette("epa_ghg", background_color = "white")
+
+epa_colors <- get_energy_palette("epa_ghg")
+print(epa_colors)
+```
+
+**Source**: EPA Inventory of U.S. Greenhouse Gas Emissions and Sinks: 1990-2021
+
+**Ordering Logic**: Fossil fuels and high-emission sectors first, transitioning to cleaner sources and end-use sectors.
+
+### EIA Primary Palette
+
+Based on U.S. Energy Information Administration's standard energy source colors.
+
+```{r eia-palette, fig.height=4, fig.width=10}
+display_energy_palette("eia_primary", background_color = "white")
+
+eia_colors <- get_energy_palette("eia_primary")
+print(eia_colors)
+```
+
+**Source**: EIA Annual Energy Outlook 2023, Monthly Energy Review
+
+**Ordering Logic**: Traditional EIA hierarchy - fossil fuels, nuclear, biomass, then renewables by intermittency.
+
+### Renewable Focus Palette
+
+Synthesized from IRENA and REN21 renewable energy reports, emphasizing clean energy technologies.
+
+```{r renewable-palette, fig.height=4, fig.width=10}
+display_energy_palette("renewable_focus", background_color = "white")
+
+renewable_colors <- get_energy_palette("renewable_focus")
+print(renewable_colors)
+```
+
+**Source**: IRENA Global Energy Transformation reports, REN21 Global Status Report
+
+**Ordering Logic**: 
+- Fossil fuels (minimal representation) → Dispatchable renewables (biomass, geothermal, hydro)
+- Marine renewables → Variable renewables (wind → solar)
+
+### Fossil Focus Palette
+
+Detailed fossil fuel classifications based on geological and energy content characteristics.
+
+```{r fossil-palette, fig.height=4, fig.width=10}
+display_energy_palette("fossil_focus", background_color = "white")
+
+fossil_colors <- get_energy_palette("fossil_focus")
+print(fossil_colors)
+```
+
+**Source**: BP Statistical Review of World Energy 2023, IEA Coal Market Update
+
+**Ordering Logic**: 
+- Coal types by carbon content (anthracite → lignite)
+- Oil products by processing level → Gas types → Renewables
+
+### Technology Focus Palette
+
+Energy technology-specific colors for comparing different power generation technologies.
+
+```{r technology-palette, fig.height=4, fig.width=10}
+display_energy_palette("technology_focus", background_color = "white")
+
+tech_colors <- get_energy_palette("technology_focus")
+print(tech_colors)
+```
+
+**Source**: IEA Energy Technology Perspectives 2023, Nuclear Energy Agency publications
+
+**Ordering Logic**: 
+- Thermal power plants (coal → gas) → Nuclear variants
+- Dispatchable clean technologies → Variable renewables → Storage
+
+## Color Ordering Principles
+
+### Carbon Intensity Hierarchy
+
+The palettes follow a consistent carbon intensity ordering:
+
+1. **Coal** (1000+ kg CO2/MWh) - Darkest colors
+2. **Oil** (800-900 kg CO2/MWh) - Dark brown tones  
+3. **Natural Gas** (400-500 kg CO2/MWh) - Blue tones
+4. **Nuclear** (10-20 kg CO2/MWh) - Yellow/gold
+5. **Renewables** (0-50 kg CO2/MWh) - Green/blue spectrum
+
+### Intermittency and Dispatchability
+
+Within each carbon category, colors are ordered by dispatchability:
+
+- **Dispatchable sources first**: Can be controlled (coal, gas, nuclear, hydro)
+- **Variable sources last**: Depend on weather (wind, solar)
+
+### Visual Progression
+
+The color progression creates intuitive visual narratives:
+- **Dark → Light**: High carbon → Low carbon
+- **Warm → Cool**: Traditional → Modern
+- **Muted → Bright**: Established → Emerging
+
+## Usage Examples
+
+### Energy Mix Visualization
+
+```{r energy-mix-example, fig.height=5, fig.width=10}
+# Load curated OWID subset (replaces previous simulated example dataset)
+data(owid_energy_mix)
+
+# Filter for one country (United States) for clearer comparison
+usa_data <- subset(owid_energy_mix, country == "United States")
+
+# Apply carbon intensity ordering for logical stacking
+usa_data$source_ordered <- order_energy_sources(usa_data$source)
+
+# Create energy mix chart showing the color progression
+ggplot(usa_data, aes(x = year, y = percentage, fill = source_ordered)) +
+  geom_col() +
+  scale_fill_energy(palette = "iea_primary") +
+  labs(
+    title = "USA Energy Mix - Colors Ordered by Carbon Intensity",
+    subtitle = "Coal (high carbon) at bottom, solar/wind (low carbon) at top",
+    x = "Year",
+    y = "Percentage (%)",
+    fill = "Energy Source"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+```
+
+### Technology Comparison
+
+```{r tech-comparison, fig.height=5, fig.width=10}
+# Load curated OWID generation data for real-world technology deployment
+data(owid_energy_mix)
+
+# Focus on recent year and major economies for technology comparison
+latest_year <- max(owid_energy_mix$year)
+tech_comparison <- subset(owid_energy_mix, year == latest_year & 
+                         country %in% c("United States", "China", "Germany", "France", "Brazil"))
+
+# Apply carbon intensity ordering for logical stacking
+tech_comparison$source_ordered <- order_energy_sources(tech_comparison$source)
+
+# Create technology generation chart
+ggplot(tech_comparison, aes(x = country, y = generation_twh, fill = source_ordered)) +
+  geom_col() +
+  scale_fill_energy(palette = "technology_focus") +
+  coord_flip() +
+  labs(
+    title = "Electricity Generation by Energy Source and Country",
+    subtitle = "Real-world deployment showing technology carbon intensity ordering",
+    x = "Country",
+    y = "Generation (TWh)",
+    fill = "Energy Source"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+```
+
+## Energy Source Ordering
+
+For clearer visualizations, energy sources can be ordered by carbon intensity, dispatchability, or custom hierarchies instead of alphabetical order.
+
+### Automatic Ordering in Plots
+
+```{r ordered-comparison, fig.height=10, fig.width=12}
+# Compare alphabetical vs carbon intensity ordering (using OWID subset)
+library(gridExtra)
+
+# Alphabetical order (default ggplot2 behavior)
+p1 <- ggplot(usa_data, aes(x = year, y = percentage, fill = source)) +
+  geom_col() +
+  scale_fill_energy(palette = "iea_primary") +
+  labs(
+    title = "Alphabetical Order",
+    subtitle = "Default ggplot2 factor ordering",
+    x = "Year", y = "Percentage (%)", fill = "Energy Source"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Carbon intensity order (high to low carbon)
+usa_data$source_ordered <- order_energy_sources(usa_data$source)
+p2 <- ggplot(usa_data, aes(x = year, y = percentage, fill = source_ordered)) +
+  geom_col() +
+  scale_fill_energy(palette = "iea_primary") +
+  labs(
+    title = "Carbon Intensity Order",
+    subtitle = "Coal (high-carbon) at bottom, Solar (low-carbon) at top",
+    x = "Year", y = "Percentage (%)", fill = "Energy Source"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Display both plots
+grid.arrange(p1, p2, ncol = 1)
+```
+
+### Manual Factor Ordering
+
+```{r manual-ordering}
+# Apply ordering to data frame using OWID energy sources
+data(owid_energy_mix)
+sample_energy_data <- subset(owid_energy_mix, country == "United States" & year == max(year))
+ordered_energy <- apply_energy_order(
+  sample_energy_data, 
+  source_column = "source"
+)
+
+# Check the new ordering
+cat("Original order:", levels(factor(sample_energy_data$source)), "\n")
+cat("Carbon intensity order:", levels(ordered_energy$source), "\n")
+
+# Alternative orderings
+dispatchable_order <- apply_energy_order(
+  sample_energy_data,
+  source_column = "source", 
+  new_column = "source_dispatchable",
+  method = "dispatchability"
+)
+
+cat("Dispatchability order:", levels(dispatchable_order$source_dispatchable), "\n")
+```
+
+### Ordering Methods
+
+The package supports several ordering methods:
+
+- **`carbon_intensity`**: Orders by CO₂ emissions (coal → gas → nuclear → renewables)
+- **`dispatchability`**: Orders by controllability (dispatchable → variable → storage)
+- **`palette_order`**: Uses the canonical order from the color palette
+
+```{r ordering-methods, fig.height=6, fig.width=12}
+# Demonstrate different ordering methods using OWID energy data
+latest_year <- max(owid_energy_mix$year)
+method_data <- subset(owid_energy_mix, year == latest_year & 
+                     country %in% c("United States", "Germany", "China"))
+
+# Carbon intensity ordering
+p1 <- method_data %>%
+  mutate(source_carbon = order_energy_sources(source, method = "carbon_intensity")) %>%
+  ggplot(aes(x = country, y = generation_twh, fill = source_carbon)) +
+  geom_col() +
+  scale_fill_energy(palette = "technology_focus") +
+  coord_flip() +
+  labs(title = "Carbon Intensity Order", fill = "Energy Source") +
+  theme_minimal()
+
+# Dispatchability ordering  
+p2 <- method_data %>%
+  mutate(source_dispatch = order_energy_sources(source, method = "dispatchability")) %>%
+  ggplot(aes(x = country, y = generation_twh, fill = source_dispatch)) +
+  geom_col() +
+  scale_fill_energy(palette = "technology_focus") +
+  coord_flip() +
+  labs(title = "Dispatchability Order", fill = "Energy Source") +
+  theme_minimal()
+
+grid.arrange(p1, p2, ncol = 2)
+```
+
+### Fine-tuning Stack Direction
+
+You can control whether high-carbon sources (e.g. Coal) appear at the bottom or the top of stacked charts using the `direction` parameter. There are TWO equivalent approaches:
+
+1. Let the scale handle it (simplest) via `scale_fill_energy(direction = ...)`.
+2. Pre-create an ordered factor with `order_energy_sources(direction = ...)` and then use the default scale.
+
+Internally the scale now sets `limits` so you do NOT have to manually reorder factors unless you want to reuse the ordered factor elsewhere (legends shared across plots, tables, etc.).
+
+```{r direction-control, fig.height=6, fig.width=12}
+# Get recent subset (latest 6–8 years depending on snapshot availability)
+cut_year <- max(usa_data$year) - 7
+usa_recent <- usa_data %>% dplyr::filter(year >= cut_year)
+
+# Direction = -1 via scale (Coal at bottom – default)
+p1 <- ggplot(usa_recent, aes(x = year, y = percentage, fill = source)) +
+  geom_col() +
+  scale_fill_energy(palette = "iea_primary", direction = -1) +
+  labs(
+    title = "Direction = -1 (Default)",
+    subtitle = "Coal at bottom → narrative of energy transition",
+    x = "Year", y = "Percentage (%)", fill = "Source"
+  ) +
+  theme_minimal() + theme(legend.position = "bottom")
+
+# Direction = 1 via scale (Coal at top – inverted)
+p2 <- ggplot(usa_recent, aes(x = year, y = percentage, fill = source)) +
+  geom_col() +
+  scale_fill_energy(palette = "iea_primary", direction = 1) +
+  labs(
+    title = "Direction = 1",
+    subtitle = "Coal at top → emphasizes renewable foundation",
+    x = "Year", y = "Percentage (%)", fill = "Source"
+  ) +
+  theme_minimal() + theme(legend.position = "bottom")
+
+grid.arrange(p1, p2, ncol = 2)
+```
+
+If you need the ordered factor for reuse:
+
+```r
+usa_recent$source_ordered_default <- order_energy_sources(usa_recent$source, direction = -1)
+usa_recent$source_ordered_inverted <- order_energy_sources(usa_recent$source, direction = 1)
+```
+
+## Color Variations for Duplicate Sources
+
+When your data contains multiple entries for the same energy source (e.g., multiple coal plants, different wind farms), you can use color variations to distinguish between them while maintaining visual consistency.
+
+### Automatic Color Variations
+
+The `display_energy_palette()` function can show how color variations work:
+
+```{r color-variations-demo, fig.height=4, fig.width=10}
+# Show 3 variations (individual labels)
+display_energy_palette("iea_primary", show_variations = TRUE, n_variations = 3, 
+                      show_labels = TRUE, background_color = "white")
+```
+
+```{r color-variations-many, fig.height=4, fig.width=10}
+# Show 5 variations (range labels for cleaner display)
+display_energy_palette("iea_primary", show_variations = TRUE, n_variations = 5, 
+                      show_labels = TRUE, background_color = "white")
+```
+
+### Variation Types
+
+Different types of color variations can be used:
+
+```{r variation-types, fig.height=12, fig.width=10}
+# Lightness variations (default)
+p1 <- display_energy_palette("iea_primary", show_variations = TRUE, n_variations = 4, 
+                            variation_type = "lightness", show_labels = TRUE, 
+                            background_color = "white", compact = TRUE)
+
+# Saturation variations
+p2 <- display_energy_palette("iea_primary", show_variations = TRUE, n_variations = 4, 
+                            variation_type = "saturation", show_labels = TRUE, 
+                            background_color = "white", compact = TRUE)
+
+# Hue variations
+p3 <- display_energy_palette("iea_primary", show_variations = TRUE, n_variations = 4, 
+                            variation_type = "hue", show_labels = TRUE, 
+                            background_color = "white", compact = TRUE)
+
+# Mixed variations (combines lightness and saturation)
+p4 <- display_energy_palette("iea_primary", show_variations = TRUE, n_variations = 4, 
+                            variation_type = "mixed", show_labels = TRUE, 
+                            background_color = "white", compact = TRUE)
+```
+
+### Variation Parameters
+
+- **`n_variations`**: Number of variations to create (default: 3)
+- **`variation_type`**: Type of variation ("lightness", "saturation", "hue", "mixed")
+- **`variation_intensity`**: How strong the variations are (0-1, default: 0.15)
+
+```{r variation-intensities, fig.height=8, fig.width=10}
+# Low intensity (subtle)
+display_energy_palette("iea_primary", show_variations = TRUE, n_variations = 5, 
+                      variation_intensity = 0.1, show_labels = TRUE, 
+                      background_color = "white", compact = TRUE)
+
+# Medium intensity (default)
+display_energy_palette("iea_primary", show_variations = TRUE, n_variations = 5, 
+                      variation_intensity = 0.15, show_labels = TRUE, 
+                      background_color = "white", compact = TRUE)
+
+# Higher intensity (more pronounced)
+display_energy_palette("iea_primary", show_variations = TRUE, n_variations = 5, 
+                      variation_intensity = 0.25, show_labels = TRUE, 
+                      background_color = "white", compact = TRUE)
+```
+
+### Smart Labeling
+
+The variation display uses smart labeling to keep legends clean and readable:
+- **≤3 variations**: Individual labels ("Coal (1)", "Coal (2)", "Coal (3)")
+- **>3 variations**: Single centered range label ("Coal (1-5)", "Nuclear (1-10)")
+
+For many variations, only one label appears in the center of each color group, avoiding visual clutter while clearly indicating the variation range.
+
+## Accessibility and Dark Themes
+
+All palettes include solid background support for dark theme compatibility:
+
+```{r dark-theme-example, fig.height=4, fig.width=10}
+# Example with dark background
+display_energy_palette("renewable_focus", background_color = "#2D2D2D")
+```
+
+The display functions automatically adjust text colors and add contrast boxes for readability in both light and dark themes.
+
+## Palette Selection Guidelines
+
+### Choose Based on Analysis Focus
+
+- **General energy analysis**: `iea_primary` (most comprehensive)
+- **US-focused analysis**: `eia_primary` or `epa_ghg`  
+- **Renewable energy**: `renewable_focus`
+- **Fossil fuel analysis**: `fossil_focus`
+- **Technology comparison**: `technology_focus`
+
+### Consider Your Audience
+
+- **Policy makers**: IEA or EPA palettes (familiar color schemes)
+- **Technical audience**: Technology focus palette
+- **Environmental focus**: Renewable focus palette
+- **Academic research**: Any palette with proper source attribution
+
+### Visual Design Considerations
+
+- **Stacked charts**: Use palettes with good contrast between adjacent colors
+- **Small multiples**: Choose palettes with distinct colors for each category
+- **Print compatibility**: All palettes work in both color and grayscale
+- **Web accessibility**: Palettes tested for colorblind compatibility
+
+## Color Customization
+
+You can modify palettes for specific needs:
+
+```{r custom-example}
+# Get base palette
+custom_palette <- get_energy_palette("iea_primary")
+
+# Modify specific colors while maintaining order
+custom_palette["Solar"] <- "#FF6B35"  # More vibrant orange
+custom_palette["Wind"] <- "#4ECDC4"   # Distinctive teal
+
+print(custom_palette)
+```
+
+## Technical Implementation
+
+### Color Space Considerations
+
+All colors are specified in sRGB hex format for maximum compatibility:
+- **Web displays**: Direct hex usage
+- **Print media**: Automatic CMYK conversion
+- **Accessibility tools**: Compatible with colorblind simulation
+
+### Ordering Implementation
+
+The palette ordering is implemented in the base data structure, ensuring consistency across all package functions:
+
+```{r ordering-demo}
+# Colors are automatically returned in carbon intensity order
+iea_palette <- get_energy_palette("iea_primary")
+cat("Order from high to low carbon intensity:\n")
+cat(paste(names(iea_palette), collapse = " → "))
+```
+
+This ordering enables intuitive stacked visualizations where the visual progression from bottom to top (or left to right) represents the transition from high-carbon to low-carbon energy sources.
+
+## References and Attribution
+
+Each palette includes comprehensive source documentation:
+
+- **IEA Primary**: World Energy Outlook 2023, Figure 1.6
+- **EPA GHG**: GHG Inventory 1990-2021, Chapter 2
+- **EIA Primary**: Annual Energy Outlook 2023, Energy Review
+- **Renewable Focus**: IRENA + REN21 reports synthesis
+- **Fossil Focus**: BP Statistical Review 2023
+- **Technology Focus**: IEA Energy Technology Perspectives 2023
+
+For detailed references, see the package documentation files:
+- `COLOR_REFERENCES.md` - Comprehensive source documentation
+- `SOURCES_QUICK_REF.md` - Quick reference guide
+
+## Best Practices Summary
+
+1. **Order matters**: Use the predefined ordering for intuitive visualizations
+2. **Match palette to purpose**: Choose palettes aligned with your analysis focus
+3. **Maintain consistency**: Use the same palette across related visualizations  
+4. **Provide attribution**: Reference both the package and original sources
+5. **Test accessibility**: Verify visualizations work for colorblind users
+6. **Consider context**: Adapt background colors for different presentation media
+
+The carefully designed ordering and comprehensive source documentation make `energypal` suitable for professional, academic, and policy applications in energy data visualization.

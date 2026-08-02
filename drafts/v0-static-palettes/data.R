@@ -1,0 +1,67 @@
+## ----------------------------------------------------------------------------
+## OWID ENERGY MIX DATASET (replaces simulated example datasets)
+## ----------------------------------------------------------------------------
+
+#' OWID Electricity Generation Mix (Curated Subset)
+#'
+#' A curated subset of the Our World in Data (OWID) energy dataset containing
+#' recent electricity generation shares by source for a selection of major
+#' economies. This dataset is included in a reduced form suitable for examples
+#' and lightweight plotting while reflecting real-world proportions.
+#'
+#' The full OWID energy dataset is large and updated frequently; use
+#' [fetch_owid_energy()] to download the complete current CSV on demand.
+#'
+#' @format A data frame with rows = country * source * year (filtered years) and
+#'   the following columns:
+#' \describe{
+#'   \item{country}{Country name (character)}
+#'   \item{iso_code}{3-letter ISO country code}
+#'   \item{year}{Calendar year (integer)}
+#'   \item{source}{Standardized energy source (character; e.g. Coal, Natural Gas, Wind, Solar)}
+#'   \item{generation_twh}{Electricity generation for the source in TWh (numeric)}
+#'   \item{percentage}{Share of total national generation for the year (0-100, numeric)}
+#'   \item{carbon_intensity_gco2_kwh}{Grid carbon intensity (gCO2 per kWh) if available (numeric, may contain NA)}
+#' }
+#'
+#' @details
+#' Sources are standardized to the energypal canonical set to ensure palette
+#' alignment. Minor or residual categories are mapped to 'Other' or excluded
+#' if below inclusion thresholds during curation.
+#'
+#' Countries currently included (subject to change as long as CRAN size limits
+#' are respected): United States, China, India, Germany, France, Brazil, Australia.
+#'
+#' Years: Most recent 1–3 complete years available at curation time (see
+#' `attr(owid_energy_mix, "metadata")` for snapshot information).
+#'
+#' @section Licensing & Attribution:
+#' Data source: Our World in Data – Global Energy dataset
+#' (https://github.com/owid/energy-data), licensed under CC-BY 4.0.
+#' Please cite OWID when using this derived subset in publications.
+#'
+#' @section Reproducibility:
+#' The dataset is generated via a data-raw script:
+#' `data-raw/prepare_owid_energy_mix.R`. Run that script to refresh and
+#' regenerate this subset; then re-document and rebuild the package.
+#'
+#' @examples
+#' data(owid_energy_mix)
+#' head(owid_energy_mix)
+#' unique(owid_energy_mix$source)
+#'
+#' # Quick stacked mix plot for latest year
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   latest <- max(owid_energy_mix$year, na.rm = TRUE)
+#'   library(ggplot2)
+#'   ggplot(subset(owid_energy_mix, year == latest),
+#'          aes(x = country, y = percentage, fill = source)) +
+#'     geom_energy_col(stack_direction = -1) +
+#'     scale_fill_energy() +
+#'     labs(title = paste("Electricity Generation Mix", latest))
+#' }
+#'
+#' @source Our World in Data (OWID) Global Energy dataset, CC-BY 4.0.
+# owid_energy_mix
+
+# (Retain the capacity dataset generation helper if needed for future builds)
