@@ -1,2 +1,0 @@
-DEBUG scale_fill_energy: received integer : 9 
-DEBUG numeric result: #2C2C2C, #8B4513, #4682B4, #FFD700, #228B22, #CD853F, #0080FF, #32CD32, #87CEEB 

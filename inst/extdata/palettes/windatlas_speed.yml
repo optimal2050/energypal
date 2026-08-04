@@ -1,0 +1,96 @@
+# Global Wind Atlas - mean wind speed, approximated
+#
+# The scale used in the published merra2ools wind maps, which followed
+# an earlier Global Wind Atlas version. It is an approximation, not the
+# atlas's own colour table: reading the legend off the GWA v3 poster was
+# tried and gave neither the right colours nor the right range.
+#
+# energypal is not affiliated with or endorsed by DTU, VORTEX or the
+# World Bank Group.
+
+meta:
+  name: "windatlas_speed"
+  title: "Global Wind Atlas mean wind speed (approximation)"
+  family: "windatlas"
+  measure: "speed"
+  default: true
+  type: "continuous"
+  unit: "m/s"
+  source: "Approximation. Derived from an earlier version of the Global Wind Atlas for the merra2ools package (c. 2020); values recovered by sampling that package's figure legend, the defining object (palette.windatlas) having been lost. Atlas version unconfirmed and not verified against GWA 3 or 4."
+  url: "https://globalwindatlas.info"
+  license: "CC BY 4.0 IGO. Creative Commons ported the IGO variant at 3.0 only, so the operative deed text is CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); the IGO qualifier and the mandatory, binding attribution addition are in the GWA terms of use at the url above"
+  attribution: >
+    [Data/information/map] obtained from the Global Wind Atlas, a free, web-based
+    application developed, owned and operated by the Technical University of Denmark
+    (DTU). The Global Wind Atlas versions 3 and 4 are released in partnership with the
+    World Bank Group, utilizing data provided by Vortex, using funding provided by the
+    Energy Sector Management Assistance Program (ESMAP). Cite The World Bank as the
+    data provider and reference ESMAP as the source of funding.
+  version: "0.1.0"
+
+# 31 stops, low to high
+colors:
+  - "#C5E9FA"
+  - "#B2E2F9"
+  - "#8DCCEE"
+  - "#7BBBE5"
+  - "#6AADDC"
+  - "#5A9ED4"
+  - "#488ECA"
+  - "#4896AD"
+  - "#489E94"
+  - "#49A57C"
+  - "#49AD63"
+  - "#49B546"
+  - "#6FC04B"
+  - "#91CA4F"
+  - "#B2D353"
+  - "#D4DD57"
+  - "#FAE85C"
+  - "#F9D052"
+  - "#F8B849"
+  - "#F7A03F"
+  - "#F68935"
+  - "#F56A29"
+  - "#EE5C29"
+  - "#E84E29"
+  - "#E23F28"
+  - "#D31F28"
+  - "#C72334"
+  - "#BC2741"
+  - "#B02B4D"
+  - "#A52F5A"
+  - "#993366"
+
+# 30 break points -> 31 bins
+breaks:
+  - 2.5
+  - 3.0
+  - 3.5
+  - 4.0
+  - 4.5
+  - 5.0
+  - 5.5
+  - 6.0
+  - 6.5
+  - 7.0
+  - 7.5
+  - 8.0
+  - 8.5
+  - 9.0
+  - 9.5
+  - 10.0
+  - 10.5
+  - 11.0
+  - 11.5
+  - 12.0
+  - 12.5
+  - 13.0
+  - 13.5
+  - 14.0
+  - 14.5
+  - 15.0
+  - 15.5
+  - 16.0
+  - 16.5
+  - 17.0

@@ -1,0 +1,212 @@
+# Energy technologies palette
+#
+# Power-generation and conversion technologies, plus the IEA/IPCC sectoral
+# demand and transformation groupings (industry, transport, buildings,
+# agriculture, energy transformation, non-energy use).
+#
+# Colours are aligned with the `carriers` palette so that a technology and the
+# carrier it consumes read as the same family.
+
+meta:
+  name: technologies
+  title: Energy technologies and sectors
+  source: IEA Energy Technology Perspectives, IPCC 2006 Guidelines (Vol.2 Energy)
+  # The IPCC guidelines rather than the IEA data portal: the portal blocks
+  # automated requests (403), which trips link checkers, and the classification
+  # this file follows is the one below.
+  url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/
+  license: >
+    Colours are energypal's own, derived from the `carriers` palette so that a
+    technology and the carrier it consumes read as the same family. They are not
+    reproduced from any published figure. The sectoral groupings follow IEA and
+    IPCC conventions.
+  version: "0.1.1"
+
+colors:
+  ElectricPower:
+    _short: Power
+    _long: Electric Power Generation
+    CoalFired:
+      _color: "#2C2C2C"          # base coal color
+      _short: Coal Gen
+      _long: Coal-Fired Generation
+      _aliases: [coal, hard coal, lignite, coal power, coal fired, steam coal]
+      subtypes:
+        PulverizedSubCritical: "#2C2C2C"
+        PulverizedSuperCritical: "#343434"
+        UltraSuperCritical: "#1E1E1E"
+        CirculatingFluidizedBed: "#4A4A4A"
+        IGCC: "#3A3A3A"          # Integrated Gasification Combined Cycle (coal-based)
+    GasFired:
+      _color: "#4682B4"          # base gas color
+      _short: Gas Gen
+      _long: Gas-Fired Generation
+      _aliases: [gas, natural gas, nat gas, ccgt, ocgt, gas turbine, combined cycle]
+      subtypes:
+        SimpleCycleGT: "#5A96C8"  # Open cycle gas turbine
+        CombinedCycleCCGT: "#4682B4"
+        ReciprocatingEngine: "#4F8CBE"
+        LNGImportTerminal: "#639FD1"  # infrastructure related (optional)
+        HydrogenBlendCCGT: "#6DA8DB"  # emerging tech (hydrogen blend)
+    OilFired:
+      _color: "#8B4513"          # base oil color, matching the carriers palette
+      _short: Oil Gen
+      _long: Oil-Fired Generation
+      _aliases: [oil, petroleum, diesel, fuel oil, hfo, oil fired, diesel genset]
+      subtypes:
+        SteamTurbineOil: "#8B4513"
+        DieselEngine: "#A85A1F"
+        OilGasTurbine: "#95501B"
+    # Placeholders for future nested groups (retain prior color inspirations)
+    Nuclear:
+      _color: "#FFD700"
+      _short: Nuclear
+      _long: Nuclear Generation
+      _aliases: [nuclear, nuclear power, uranium]
+      subtypes:
+        PWR: "#FFD700"
+        BWR: "#E6C300"
+    Biomass:
+      _color: "#228B22"
+      _short: Biomass Gen
+      _long: Biomass Generation
+      _aliases: [biomass, bioenergy, biogas, waste to energy, wood]
+      subtypes:
+        Combustion: "#228B22"
+        WasteToEnergy: "#556B2F"
+    Hydro:
+      _color: "#0080FF"
+      _short: Hydro Gen
+      _long: Hydroelectric Generation
+      _aliases: [hydro, hydropower, hydroelectric, pumped hydro]
+      subtypes:
+        Turbine: "#0080FF"
+        PumpedStorage: "#20B2AA"
+    Wind:
+      _color: "#87CEEB"
+      _short: Wind Gen
+      _long: Wind Generation
+      _aliases: [wind, wind power, onshore wind, offshore wind, wind turbine]
+      subtypes:
+        Onshore: "#87CEEB"
+        Offshore: "#6BB7D6"
+    Solar:
+      _color: "#FFA500"
+      _short: Solar Gen
+      _long: Solar Generation
+      _aliases: [solar, pv, photovoltaic, solar pv, csp]
+      subtypes:
+        PV: "#FFA500"
+        CSP: "#FFB347"
+    Geothermal:
+      _color: "#CD853F"
+      _short: Geo Gen
+      _long: Geothermal Generation
+      _aliases: [geothermal, geo]
+      subtypes:
+        Flash: "#CD853F"
+        Binary: "#B27336"
+    Storage:
+      _color: "#9370DB"
+      _short: Storage
+      _long: Energy Storage (Tech)
+      subtypes:
+        Battery: "#9370DB"
+        Hydrogen: "#8A67D2"
+        Thermal: "#7E5BC6"
+
+  # IEA / IPCC sectoral demand & transformation groupings (provisional colors)
+  Industry:
+    _color: "#546575"            # Base industry neutral blue-gray
+    _short: Industry
+    _long: Industry
+    subtypes:
+      IronAndSteel: "#455463"     # Darker for heavy industry
+      Refineries: "#5E6F80"       # Slightly lighter (links to oil processing)
+      NonFerrousMetals: "#4F6070"
+      ChemicalsPetrochemicals: "#607282"
+      Cement: "#495863"
+      PulpAndPaper: "#647786"
+      FoodAndTobacco: "#586A78"
+      Machinery: "#5B6D7B"
+      Mining: "#4A5966"
+      Construction: "#526171"
+      OtherIndustry: "#546575"
+
+  Transport:
+    _color: "#0E8484"            # Base transport teal
+    _short: Transport
+    _long: Transport
+    subtypes:
+      Road: "#0E8484"
+      Rail: "#107F91"
+      Aviation: "#1594A4"
+      Shipping: "#0D6F75"
+      Pipelines: "#0F7A7A"
+      OtherTransport: "#0E8484"
+
+  Buildings:
+    _color: "#A97142"            # Warm earthy tone for buildings
+    _short: Buildings
+    _long: Buildings
+    subtypes:
+      Residential: "#A97142"
+      CommercialPublic: "#B37B4C"
+      OtherBuildings: "#A97142"
+
+  AgricultureForestryFishing:
+    _color: "#6B8E23"            # Olive green for land-based sectors
+    _short: AFF
+    _long: Agriculture, Forestry & Fishing
+    subtypes:
+      Agriculture: "#6B8E23"
+      Forestry: "#5F7F1F"
+      Fishing: "#779B2A"
+      OtherAFF: "#6B8E23"
+
+  EnergyTransformation:
+    _color: "#6A5ACD"            # Slate purple for conversion processes
+    _short: Transform
+    _long: Energy Transformation
+    subtypes:
+      OilRefining: "#6A5ACD"      # Aligns with refineries but distinct from Industry::Refineries
+      CokeOvens: "#594BB5"
+      GasWorks: "#7769D4"
+      Liquefaction: "#5E50C2"
+      GasProcessing: "#7D71D8"
+      HydrogenElectrolysis: "#847AD9"
+      OtherTransformation: "#6A5ACD"
+
+  NonEnergyUse:
+    _color: "#556B8C"            # Desaturated blue for non-energy products
+    _short: NonEnergy
+    _long: Non-Energy Use
+    subtypes:
+      PetrochemicalFeedstocks: "#4B607E"
+      Lubricants: "#5E7393"
+      Waxes: "#516685"
+      Asphalt: "#495E7A"
+      OtherNonEnergyUse: "#556B8C"
+
+
+# ---------------------------------------------------------------------------
+# Origin of this file, carried over from the single hierarchical palette that
+# carriers.yml and technologies.yml were split out of. Kept verbatim apart from
+# the licence line, which is superseded: the package is Apache 2.0 and each
+# palette states its own content terms in `meta.license` above.
+# ---------------------------------------------------------------------------
+metadata:
+  version: "0.1.1"
+  created: "2025-09-15"
+  notes: |
+    Colors are provisional and designed to maintain visual continuity with existing iea_primary palette.
+    Subtype shades are adjusted primarily via lightness shifts; further refinement may include perceptual
+    uniformity adjustments (e.g., OKLCH) and color-blind safety evaluation.
+    v0.1.1: Added sectoral technology groupings (Industry, Transport, Buildings, AgricultureForestryFishing,
+            EnergyTransformation, NonEnergyUse) with provisional color assignments.
+  references:
+    - IPCC 2006 Guidelines for National Greenhouse Gas Inventories
+    - IEA World Energy Balances
+    - EIA Fuel Category Definitions
+    - IRENA Technology Classifications
+    - REN21 Global Status Report

@@ -1,9 +1,7 @@
-skip_if_not(exists("load_hierarchical_energy_palettes"), "Hierarchy functions not available")
-
-test_that("hierarchy_to_table flattens carriers", {
-  tab <- hierarchy_to_table("carriers")
+test_that("energypal_table flattens carriers", {
+  tab <- energypal_table("carriers")
   expect_true(is.data.frame(tab))
-  expect_true(all(c("name","level","parent","color","type","path","branch","section") %in% names(tab)))
+  expect_true(all(c("name","level","parent","color","type","path","branch","palette") %in% names(tab)))
   # Expect at least the known top-level groups
   expect_true(any(tab$name == "FossilFuels"))
   expect_true(any(tab$name == "Renewable"))
@@ -13,12 +11,12 @@ test_that("hierarchy_to_table flattens carriers", {
   expect_true("Anthracite" %in% coal_subtypes)
 })
 
-test_that("hierarchy_to_table flattens technologies", {
-  tabt <- hierarchy_to_table("technologies")
+test_that("energypal_table flattens technologies", {
+  tabt <- energypal_table("technologies")
   expect_true(is.data.frame(tabt))
   expect_true(any(tabt$name == "ElectricPower"))
   expect_true(any(tabt$name == "Industry"))
   # Check that a technology subtype exists
   expect_true(any(tabt$name == "CombinedCycleCCGT"))
-  expect_true(all(tabt$section == "technologies"))
+  expect_true(all(tabt$palette == "technologies"))
 })

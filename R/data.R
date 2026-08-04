@@ -9,8 +9,9 @@
 #' economies. This dataset is included in a reduced form suitable for examples
 #' and lightweight plotting while reflecting real-world proportions.
 #'
-#' The full OWID energy dataset is large and updated frequently; use
-#' [fetch_owid_energy()] to download the complete current CSV on demand.
+#' The full OWID energy dataset is large and updated frequently, so only this
+#' curated subset ships with the package. `data-raw/fetch_owid_energy.R`
+#' downloads the complete current CSV if you need it.
 #'
 #' @format A data frame with rows = country * source * year (filtered years) and
 #'   the following columns:
@@ -50,18 +51,10 @@
 #' head(owid_energy_mix)
 #' unique(owid_energy_mix$source)
 #'
-#' # Quick stacked mix plot for latest year
-#' if (requireNamespace("ggplot2", quietly = TRUE)) {
-#'   latest <- max(owid_energy_mix$year, na.rm = TRUE)
-#'   library(ggplot2)
-#'   ggplot(subset(owid_energy_mix, year == latest),
-#'          aes(x = country, y = percentage, fill = source)) +
-#'     geom_energy_col(stack_direction = -1) +
-#'     scale_fill_energy() +
-#'     labs(title = paste("Electricity Generation Mix", latest))
-#' }
+#' # Snapshot provenance travels with the data
+#' str(attr(owid_energy_mix, "metadata"))
 #'
 #' @source Our World in Data (OWID) Global Energy dataset, CC-BY 4.0.
-# owid_energy_mix
+"owid_energy_mix"
 
 # (Retain the capacity dataset generation helper if needed for future builds)

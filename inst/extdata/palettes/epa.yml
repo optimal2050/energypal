@@ -1,0 +1,75 @@
+# U.S. EPA greenhouse gas inventory palette
+#
+# Unlike the other report palettes this one is not purely fuel-based: EPA's
+# inventory charts mix fuels with emitting sectors. The sector entries are
+# declared here rather than inherited, since the carriers hierarchy has no
+# equivalent for them.
+#
+# Colours are approximated by eye from published charts; EPA publishes no colour
+# specification. energypal is not affiliated with or endorsed by the EPA.
+#
+# Note on `Renewable`: EPA charts an aggregate renewables series, which in the
+# carriers taxonomy is a *group* rather than a carrier. Groups are off by default
+# in energypal(), so this palette returns nine entries unless you ask for
+# `include_groups = TRUE`. Matching is unaffected - "Renewable Energy" resolves
+# either way, since the matcher always searches the full hierarchy.
+
+meta:
+  name: epa
+  title: "EPA greenhouse gas inventory (approximation)"
+  source: EPA Inventory of U.S. Greenhouse Gas Emissions and Sinks, Ch. 2 "Trends in Greenhouse Gas Emissions"
+  url: https://www.epa.gov/ghgemissions/inventory-us-greenhouse-gas-emissions-and-sinks-1990-2021
+  license: >
+    Public domain. A work of the U.S. federal government, not subject to
+    copyright protection in the United States (17 U.S.C. 105). Colours
+    approximated by eye from published figures; the EPA publishes no colour
+    specification.
+  version: "0.1.0"
+  extends: carriers
+
+colors:
+  FossilCoal:
+    _color: "#4A4A4A"
+    _long: Coal
+    _aliases: [coal]
+  FossilOil:
+    _color: "#8B0000"
+    _long: Petroleum
+    _aliases: [petroleum, petroleum products]
+  FossilGas:
+    _color: "#4169E1"
+    _long: Natural Gas
+    _aliases: [natural gas]
+  Nuclear:
+    _color: "#FF8C00"
+    _long: Nuclear
+  Bioenergy:
+    _color: "#8FBC8F"
+    _long: Biomass
+    _aliases: [biomass, wood biomass]
+  Renewable:
+    _color: "#228B22"
+    _long: Renewable Energy
+    _aliases: [renewable energy, renewables]
+  Electricity:
+    _color: "#FFD700"
+    _long: Electric Power
+    _aliases: [electric power, electricity, electric power sector]
+
+  # The emitting sectors EPA charts alongside the fuels. These are EPA's own
+  # categories and have no counterpart in the carriers taxonomy.
+  Transportation:
+    _color: "#DC143C"
+    _short: Transport
+    _long: Transportation
+    _aliases: [transportation, transport, mobility]
+  Industrial:
+    _color: "#708090"
+    _short: Industry
+    _long: Industrial
+    _aliases: [industrial, industry, manufacturing]
+  Residential:
+    _color: "#DDA0DD"
+    _short: Residential
+    _long: Residential
+    _aliases: [residential, homes, housing]

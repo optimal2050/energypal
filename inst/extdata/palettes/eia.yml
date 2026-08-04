@@ -1,0 +1,61 @@
+# U.S. Energy Information Administration palette
+#
+# EIA's own vocabulary differs from the canonical ids - "Petroleum" for oil,
+# "Nuclear Electric Power" for nuclear - so each entry carries EIA's wording as
+# its long label and as an alias, and EIA's own tables match without relabelling.
+#
+# Colours are approximated by eye from published charts; EIA publishes no colour
+# specification. energypal is not affiliated with or endorsed by the EIA.
+
+meta:
+  name: eia
+  title: "EIA Annual Energy Outlook (approximation)"
+  source: EIA Annual Energy Outlook 2023, Fig. ES-1 "Energy consumption by source"
+  url: https://www.eia.gov/outlooks/aeo/
+  license: >
+    Public domain. A work of the U.S. federal government, not subject to
+    copyright protection in the United States (17 U.S.C. 105). Colours
+    approximated by eye from published figures; the EIA and EPA publish no
+    colour specification.
+  version: "0.1.0"
+  extends: carriers
+
+# The sources EIA's consumption-by-source charts break out. Note it does break
+# out geothermal, which OWID does not.
+colors:
+  FossilCoal:
+    _color: "#3C3C3C"
+    _long: Coal
+    _aliases: [coal]
+  FossilOil:
+    _color: "#8B4513"
+    _long: Petroleum
+    _aliases: [petroleum, petroleum and other liquids, liquid fuels]
+  FossilGas:
+    _color: "#6495ED"
+    _long: Natural Gas
+    _aliases: [natural gas, dry natural gas]
+  Nuclear:
+    _color: "#FFB347"
+    _long: Nuclear Electric Power
+    _aliases: [nuclear electric power, nuclear power]
+  Bioenergy:
+    _color: "#90EE90"
+    _long: Biomass
+    _aliases: [biomass, wood and waste, biofuels]
+  Geothermal:
+    _color: "#D2691E"
+    _long: Geothermal
+  Hydro:
+    _color: "#00CED1"
+    _long: Hydroelectric Power
+    _aliases: [hydroelectric power, conventional hydroelectric]
+  Wind:
+    _color: "#ADD8E6"
+    _long: Wind
+  Solar:
+    _color: "#FF8C00"
+    _long: Solar
+  Other:
+    _color: "#C0C0C0"
+    _long: Other

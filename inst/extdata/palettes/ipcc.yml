@@ -1,0 +1,81 @@
+# IPCC AR6 WGIII energy supply palette
+#
+# The distinguishing feature of the AR6 supply charts is that each fossil
+# carrier appears twice, with and without CCS, the CCS variant being a lighter
+# shade of the same hue. Those CCS nodes have no equivalent in the carriers
+# hierarchy and are declared here.
+#
+# Worth knowing before adding to this file: the IPCC does publish
+# machine-readable colour specifications - the AR6 WGI Visual Style Guide and
+# the IPCC-WG1/colormaps repository - but they cover climate variables and CMIP6
+# scenarios, not energy carriers. There is no published carrier specification,
+# so these colours are approximated by eye from Fig. 3.8. AR6 scenario
+# categories (C1-C8) would be a genuinely specified palette; see the 0.2.0
+# backlog.
+#
+# energypal is not affiliated with or endorsed by the IPCC.
+
+meta:
+  name: ipcc
+  title: "IPCC AR6 WGIII energy supply (approximation)"
+  source: IPCC AR6 WGIII, Chapter 3, Fig. 3.8 "Energy Supply in Illustrative Pathways"
+  url: https://www.ipcc.ch/report/ar6/wg3/downloads/report/IPCC_AR6_WGIII_Chapter03.pdf
+  license: >
+    IPCC material may be reproduced with acknowledgement of the source. Colours
+    approximated by eye from a published figure; the IPCC publishes no colour
+    specification for energy carriers.
+  attribution: >
+    Colours after IPCC, 2022: Climate Change 2022 - Mitigation of Climate
+    Change. Contribution of Working Group III to the Sixth Assessment Report of
+    the Intergovernmental Panel on Climate Change, Chapter 3, Figure 3.8.
+    Approximated from the published figure; not an IPCC colour specification.
+  version: "0.1.0"
+  extends: carriers
+
+colors:
+  FossilCoal:
+    _color: "#2E2E2E"
+    _long: Coal
+    _aliases: [coal]
+  FossilOil:
+    _color: "#8B4000"
+    _long: Oil
+    _aliases: [oil]
+  FossilGas:
+    _color: "#1E90FF"
+    _long: Gas
+    _aliases: [gas]
+  Bioenergy:
+    _color: "#006400"
+    _long: Biomass
+    _aliases: [biomass, modern biomass]
+  Nuclear:
+    _color: "#FFD700"
+    _long: Nuclear
+
+  # The CCS counterparts, which is what makes this palette distinctive.
+  FossilCoalCCS:
+    _color: "#4D4D4D"
+    _short: Coal CCS
+    _long: Coal with CCS
+    _aliases: [coal ccs, coal with ccs, coal w/ ccs]
+  FossilOilCCS:
+    _color: "#A05A2C"
+    _short: Oil CCS
+    _long: Oil with CCS
+    _aliases: [oil ccs, oil with ccs]
+  FossilGasCCS:
+    _color: "#4682B4"
+    _short: Gas CCS
+    _long: Gas with CCS
+    _aliases: [gas ccs, gas with ccs, natural gas ccs]
+  BioenergyCCS:
+    _color: "#228B22"
+    _short: BECCS
+    _long: Biomass with CCS
+    _aliases: [beccs, biomass ccs, biomass with ccs, bioenergy with ccs]
+  NonBiomassRenewables:
+    _color: "#98FB98"
+    _short: Non-bio RE
+    _long: Non-biomass renewables
+    _aliases: [non-biomass renewables, nonbiomass renewables, other renewables]

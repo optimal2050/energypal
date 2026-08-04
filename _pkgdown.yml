@@ -1,14 +1,78 @@
-url: ~
+url: https://optimal2050.github.io/energypal/
+
 template:
   bootstrap: 5
   light-switch: true
   bslib:
     bootswatch: pulse
-    # bootswatch: spacelab
-    # bootswatch: quartz
-    # bootswatch: morph
-    # bootswatch: simplex
-    # bootswatch: litera
-    # bootswatch: vapor
-    # bootswatch: journal
-    # bootswatch: united
+
+# Keep the author out of the chrome. The default sidebar carries a "Developers"
+# block and the default footer a "Developed by ..." line, which put a name on
+# every page of the site. Authorship belongs with the citation, which is one
+# click away and is what someone actually needs it for.
+home:
+  sidebar:
+    structure: [links, license, citation, dev]
+
+footer:
+  structure:
+    left: legal
+    right: built_with
+  components:
+    legal: "Released under the Apache License 2.0."
+
+reference:
+  - title: Palettes
+    desc: >
+      Getting colours out of a palette, and finding out what is available.
+    contents:
+      - energypal
+      - energypal_info
+      - energypal_show
+      - energypal_table
+
+  - title: Matching data labels
+    desc: >
+      Resolving the source labels real datasets use onto palette entries.
+    contents:
+      - energypal_colors
+      - energypal_match
+
+  - title: Ordering
+    desc: >
+      Sequencing legends and chart series. Presentation only - orderings are
+      not model inputs.
+    contents:
+      - energypal_orders
+
+  - title: ggplot2 scales
+    contents:
+      - scale_energy
+
+  - title: Shades
+    desc: >
+      Distinguishing several series that resolve to the same carrier.
+    contents:
+      - energypal_gradient
+
+  - title: Your own palettes
+    desc: >
+      A named colour vector is a palette; save it, edit the YAML, load it back.
+    contents:
+      - energypal_create
+      - energypal_write
+      - energypal_register
+      - energypal_spec
+      - energypal_validate
+      - energypal_validate_families
+
+  - title: Data
+    contents:
+      - owid_energy_mix
+
+articles:
+  - title: Articles
+    navbar: ~
+    contents:
+      - getting-started
+      - palettes

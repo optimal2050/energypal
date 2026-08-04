@@ -1,0 +1,335 @@
+---
+title: "The palettes"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The palettes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  dpi = 96
+)
+```
+
+```{r libs, message = FALSE}
+library(energypal)
+library(ggplot2)
+library(dplyr)
+```
+
+Every palette is a YAML file under `inst/extdata/palettes/`, carrying its own
+colours, labels, aliases and provenance. This article previews all of them.
+
+Nothing here is hard-coded: the sections below are generated from
+`energypal_info()`, so a palette added to the store appears without this file
+being edited.
+
+## What is installed
+
+```{r info}
+info <- energypal_info()
+
+info |>
+  select(name, title, type, n, unit) |>
+  knitr::kable()
+```
+
+The two kinds are handled differently throughout, so it is worth naming them
+once:
+
+```{r kinds}
+discrete <- info |> filter(type == "discrete") |> pull(name)
+continuous <- info |> filter(type == "continuous") |> pull(name)
+
+discrete
+continuous
+```
+
+## All at a glance
+
+Given several names, `energypal_show()` draws them as aligned rows — one per
+palette, one column per entry. Differences between published schemes are easier
+to see this way than in any table.
+
+```{r overview, fig.height = 5.5}
+energypal_show(discrete)
+```
+
+Entries that only some palettes define trail off to the right: IPCC's CCS
+variants, EPA's sector categories, the technologies taxonomy.
+
+Continuous palettes have no entries to align on, so several of them are drawn
+stacked instead, each with its own range and unit:
+
+```{r overview-continuous, fig.height = 2.2}
+energypal_show(continuous)
+```
+
+## Discrete palettes
+
+A palette shows only the colours its own source publishes. Report palettes
+`extends: carriers`, which gives them the taxonomy — names, labels, aliases,
+hierarchy, orderings — but **not** its colours. So a carrier a source is silent
+about comes back unmapped rather than quietly borrowing the default:
+
+```{r declared-only}
+setdiff(names(energypal("carriers")), names(energypal("owid")))
+
+# OWID publishes no geothermal series, and says so
+energypal_match("Geothermal", palette = "owid", warn = FALSE)
+
+# ...while the inherited alias vocabulary still resolves
+energypal_colors("nat gas", palette = "owid", warn = FALSE)
+```
+
+That is why these palettes are worth choosing between: each is its source's own
+set, not the default with a few edits. Three earlier palettes (`iea`, `fossil`,
+`renewable`) were dropped for failing that test — `iea` differed from `carriers`
+in zero carrier-level entries, because `carriers` was seeded from it.
+
+```{r discrete, results = "asis", fig.height = 4.6}
+for (nm in discrete) {
+  spec <- energypal_spec(nm)
+  m <- spec$meta
+
+  cat("\n### ", if (is.null(m$title)) nm else m$title, "  \n", sep = "")
+  cat("`", nm, "`\n\n", sep = "")
+  if (!is.null(m$source)) cat("**Source** ", m$source, "  \n", sep = "")
+  if (!is.null(m$url))    cat("**URL** <", m$url, ">  \n", sep = "")
+  if (!is.null(m$extends)) cat("**Extends** `", m$extends, "`  \n", sep = "")
+  if (!is.null(m$license)) cat("\n> **Licence** ", m$license, "\n", sep = "")
+  if (!is.null(m$attribution)) {
+    cat("\n> **Attribution** ", m$attribution, "\n", sep = "")
+  }
+  cat("\n")
+
+  energypal_show(nm, label_style = "default")
+  cat("\n\n")
+}
+```
+
+## Continuous palettes
+
+Resource maps need a ramp rather than a set of categories. These palettes are an
+ordered list of stops and declare their own break points and unit, so a binned
+scale needs no configuration.
+
+```{r continuous, results = "asis", fig.height = 2.4}
+for (nm in continuous) {
+  spec <- energypal_spec(nm)
+  m <- spec$meta
+  brk <- as.numeric(unlist(spec$breaks))
+
+  cat("\n### ", if (is.null(m$title)) nm else m$title, "  \n", sep = "")
+  cat("`", nm, "` — family `", m$family, "`, measure `", m$measure,
+      "`, unit `", m$unit, "`  \n", sep = "")
+  cat(length(energypal(nm)), " stops, ", length(brk), " breaks from ",
+      min(brk), " to ", max(brk), "  \n", sep = "")
+  if (!is.null(m$source)) cat("**Source** ", m$source, "  \n", sep = "")
+  if (!is.null(m$license)) cat("\n> **Licence** ", m$license, "\n", sep = "")
+  if (!is.null(m$attribution)) {
+    cat("\n> **Attribution** ", m$attribution, "\n", sep = "")
+  }
+  cat("\n")
+
+  energypal_show(nm)
+  cat("\n\n")
+}
+```
+
+An atlas publishes several quantities and styles each differently, so each is a
+separate palette named `family_measure`. They are not interchangeable. One
+member of each family is its default, so the bare family name resolves to it:
+
+```{r family}
+identical(energypal("windatlas"), energypal("windatlas_speed"))
+energypal_info(family = "windatlas") |> select(name, measure, default, unit)
+```
+
+Several measures published by the atlases are **not** included — wind power
+density and IEC capacity-factor classes, solar DNI, DIF and GTI — because no
+verified colour source for them was available, and guessing would defeat the
+purpose of a store whose value is its provenance. They are better added as one
+reviewable file each than approximated in bulk.
+
+## Orderings
+
+Order carries meaning in energy charts, so palettes declare it rather than
+leaving it to whatever sequence the file happens to use.
+
+```{r orders}
+energypal_orders("carriers") |>
+  select(order, kind, n, source) |>
+  knitr::kable()
+```
+
+The same data under three of them. The sequence changes; the colour of each
+carrier does not.
+
+```{r ordering-demo, fig.height = 3.4}
+# countries ordered most carbon-intensive first, using the palette's own
+# carbon-intensity property - a presentation ordering, not an emissions estimate
+latest <- owid_energy_mix |> filter(year == max(year))
+
+# one row per carrier that has a figure: a name can appear twice in the table
+# (Nuclear is both a group and the carrier inside it), which would fan the join out
+intensity <- energypal_table("carriers") |>
+  filter(!is.na(carbon_intensity)) |>
+  distinct(carrier = name, carbon_intensity)
+
+rank <- latest |>
+  left_join(energypal_match(unique(latest$source), warn = FALSE) |>
+              select(source = original, carrier = matched), by = "source") |>
+  left_join(intensity, by = "carrier") |>
+  group_by(country) |>
+  summarise(ci = weighted.mean(carbon_intensity, percentage, na.rm = TRUE)) |>
+  arrange(desc(ci))
+
+d <- latest |> mutate(country = factor(country, levels = rank$country))
+for (o in c("carbon_intensity", "merit_order", "renewability")) {
+  print(
+    ggplot(d, aes(country, percentage, fill = source)) +
+      geom_col() +
+      scale_fill_energy(order = o) +
+      labs(title = o, x = NULL, y = "%") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  )
+}
+```
+
+An ordering declared at carrier level covers the subtypes beneath it: an entry
+the sequence does not name sorts with its nearest named ancestor, so each fuel's
+family stays together.
+
+```{r subtypes}
+energypal_table("carriers", order = "carbon_intensity") |>
+  select(name, type) |>
+  head(10)
+```
+
+> **Orderings, and the figures behind them, are for presentation only.** They
+> arrange legends and chart series. They are indicative values, not validated
+> figures, and must not be used in calculations. Every declared ordering and
+> numeric property carries a note saying so, which travels with the data:
+
+```{r caveat}
+tab <- energypal_table("carriers")
+attr(tab$carbon_intensity, "note")
+attr(tab$carbon_intensity, "source")
+```
+
+## Shades within a carrier
+
+Plant-level data repeats a carrier many times over — a fleet has several coal
+units and a dozen wind farms. `energypal_gradient()` spreads one palette colour
+into distinct tones so those clusters stay apart without losing the fuel.
+
+```{r shades, fig.height = 4.6, fig.width = 8}
+base <- energypal("carriers", n = 10)
+n_sh <- 5
+
+op <- par(mai = c(0.2, 1.15, 0.4, 0.2))
+plot.new()
+plot.window(xlim = c(0.5, n_sh + 0.5), ylim = c(length(base) + 0.5, 0.5))
+for (i in seq_along(base)) {
+  sh <- energypal_gradient(base[[i]], n = n_sh)
+  for (j in seq_len(n_sh)) {
+    rect(j - 0.5, i - 0.42, j + 0.5, i + 0.42, col = sh[j], border = "white", lwd = 0.6)
+  }
+  mtext(names(base)[i], side = 2, at = i, las = 1, line = 0.3, cex = 0.75)
+}
+title(main = sprintf("%d shades of each carrier", n_sh), cex.main = 0.95)
+par(op)
+```
+
+The middle column is the palette colour; the gradient spreads symmetrically
+around it in OKLAB rather than only lightening, which is what keeps a bright
+carrier like Solar from collapsing to one tone.
+
+`energypal_colors(gradient = TRUE)` applies this to data, grouping by the
+carrier each label *resolved to*:
+
+```{r shades-data}
+energypal_colors(c("Coal_1", "Coal_2", "Coal_3", "Wind_N", "Wind_S", "Solar_1"),
+                 gradient = TRUE, warn = FALSE)
+```
+
+Grouping by resolved carrier rather than by colour matters where two entries
+share a hex code — `FossilCoal` and `OtherFossilCoal` are both `#2C2C2C`, and
+grouping on the colour would merge them into one gradient.
+
+## The same chart, four ways
+
+```{r comparison, fig.height = 3.4}
+for (p in c("carriers", "eia", "ipcc", "owid")) {
+  print(
+    ggplot(d, aes(country, percentage, fill = source)) +
+      geom_col() +
+      scale_fill_energy(palette = p) +
+      labs(title = p, x = NULL, y = "%") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  )
+}
+```
+
+## Adding a palette
+
+One YAML file in `inst/extdata/palettes/`, or anywhere on disk if you pass
+`file =`. No code changes, no registration in a list, no test edits — the
+validator tests iterate over the directory, so a new file is picked up and
+checked automatically.
+
+```yaml
+meta:
+  name: myreport
+  title: "Colours for the 2026 report"
+  source: "Figure 4.2"
+  license: "Our own colours"   # required: how they were obtained
+  extends: carriers            # optional: inherit labels and aliases
+colors:
+  FossilCoal: "#3A3A3A"        # state only what this palette publishes
+  FossilGas: "#5599CC"
+```
+
+`extends` applies each entry wherever that name occurs in the parent, at any
+depth, keeping the labels and aliases it already had — and *only* those two
+entries get a colour. A palette that wants to be standalone simply omits it.
+
+```{r validate}
+f <- tempfile(fileext = ".yml")
+writeLines(c("meta:", "  name: myreport", "  license: Our own colours",
+             "  extends: carriers",
+             "colors:", '  FossilCoal: "#3A3A3A"'), f)
+
+energypal_validate(energypal_spec(file = f))
+energypal_colors(c("Coal", "coal power"), file = f)   # aliases inherited
+energypal_colors("Solar", file = f, warn = FALSE)     # not declared here
+```
+
+### Provenance is required
+
+`energypal_validate()` refuses a palette that does not say where its colours
+came from, and one declaring a CC BY licence without the citation that licence
+requires. That rule exists because the store is only worth having if every entry
+can be traced.
+
+Colours reach a palette one of two ways, and `meta.license` always says which:
+reproduced from a downloadable Work published under a licence that permits it —
+the atlas poster maps — or approximated by eye from a published figure, where the
+source publishes no colour specification at all. The second is the common case,
+which is why those palettes are titled *(approximation)*.
+
+Your own palettes are exempt. `energypal_register()` validates leniently, and
+`energypal_validate(..., strict = FALSE)` checks structure alone:
+
+```{r lenient}
+mine <- energypal_create(c(Coal = "#FF0000", Solar = "#00FF00"), name = "mine")
+energypal_validate(mine, strict = FALSE)
+```

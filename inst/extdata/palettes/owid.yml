@@ -1,0 +1,65 @@
+# Our World in Data energy mix palette
+#
+# The public-facing OWID charts use brighter, higher-contrast colours than the
+# agency reports, chosen to stay legible on a white web page at small sizes.
+#
+# Colours are approximated by eye from published charts; OWID publishes no
+# colour specification. energypal is not affiliated with or endorsed by Our
+# World in Data.
+
+meta:
+  name: owid
+  title: "Our World in Data energy mix (approximation)"
+  source: Our World in Data, "Energy Mix" interactive charts
+  url: https://ourworldindata.org/energy-mix
+  license: >
+    CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Colours
+    approximated by eye from published charts; OWID publishes no colour
+    specification.
+  attribution: >
+    Colours after Our World in Data, "Energy Mix"
+    (https://ourworldindata.org/energy-mix), licensed CC BY 4.0. Approximated
+    from published charts; not an official OWID specification.
+  version: "0.1.0"
+  extends: carriers
+
+# The series OWID's energy-mix charts actually draw, plus a residual. Anything
+# else - geothermal on its own, storage, hydrogen - it does not publish, and
+# asking for it returns unmapped rather than a borrowed colour.
+colors:
+  FossilCoal:
+    _color: "#3B3B3B"
+    _long: Coal
+    _aliases: [coal]
+  FossilOil:
+    _color: "#AA5500"
+    _long: Oil
+    _aliases: [oil]
+  FossilGas:
+    _color: "#3399FF"
+    _long: Gas
+    _aliases: [gas]
+  Nuclear:
+    _color: "#FFBB33"
+    _long: Nuclear
+  Hydro:
+    _color: "#0050A0"
+    _long: Hydropower
+    _aliases: [hydropower]
+  Solar:
+    _color: "#FFCC00"
+    _long: Solar
+  Wind:
+    _color: "#00BFCF"
+    _long: Wind
+  Bioenergy:
+    _color: "#009900"
+    _long: Biofuels
+    _aliases: [biofuels, modern biofuels]
+  OtherRenewables:
+    _color: "#66CC66"
+    _long: Other renewables
+    _aliases: [other renewables]
+  Other:
+    _color: "#C0C0C0"
+    _long: Other

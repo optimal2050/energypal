@@ -9,7 +9,21 @@
 Rplots.pdf
 
 # archived debug output - the sources in drafts/ are kept, the plots are not
-drafts/scratch/figures/
-drafts/**/*.png
-drafts/**/*.pdf
+drafts/
 energypal.code-workspace
+/doc/
+/Meta/
+dev/
+
+# knitr scratch output when knitting from the package root
+figure/
+
+# Source downloads for the resource palettes (~19 GB of atlas posters and data
+# rasters) and the script that reads them. Neither is required by any licence:
+# compliance lives in each palette's meta.license / meta.attribution and in
+# inst/NOTICE, all of which ship. data-raw is .Rbuildignore'd too.
+data-raw/**
+
+# ...except the OWID dataset script, which anyone can run: it downloads a public
+# CSV and is how data/owid_energy_mix.rda was built.
+!data-raw/prepare_owid_energy_mix.R

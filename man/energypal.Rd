@@ -2,41 +2,103 @@
 % Please edit documentation in R/energypal.R
 \name{energypal}
 \alias{energypal}
-\title{Energy palette by name}
+\title{Energy colour palette}
 \usage{
 energypal(
-  section = c("carriers", "technologies"),
-  include_groups = TRUE,
+  palette = NULL,
+  n = NULL,
+  file = NULL,
+  order = NULL,
+  direction = 1,
+  include_groups = FALSE,
   include_carriers = TRUE,
-  include_subtypes = TRUE,
-  label_style = c("id", "short", "long", "default", "legacy"),
+  include_subtypes = FALSE,
+  label_style = c("id", "short", "long", "default"),
   drop_na_colors = TRUE,
   unique_names = TRUE
 )
 }
 \arguments{
-\item{section}{One of 'carriers' or 'technologies'.}
+\item{palette}{Name of a built-in or registered palette. Defaults to the
+\code{energypal.palette} option, or \code{"carriers"}.}
 
-\item{include_groups}{Logical; include top-level group nodes (default FALSE for plotting palettes).}
+\item{n}{Number of colours to return. \code{NULL} (default) returns all of them;
+otherwise the first \code{n}, and it is an error to ask for more than the
+palette holds.}
 
-\item{include_carriers}{Logical; include carrier / technology nodes (default TRUE).}
+\item{file}{Path to a palette file, taking precedence over \code{palette}.}
 
-\item{include_subtypes}{Logical; include subtype nodes (default TRUE).}
+\item{order}{How to sequence the colours. \code{NULL} or \code{"spec"} keeps file
+order; otherwise the name of an ordering declared in the palette
+(\code{"carbon_intensity"}, \code{"dispatchability"}, \code{"merit_order"},
+\code{"renewability"}), the name of a numeric property (sorted descending), one
+of the computed orderings \code{"alpha"}, \code{"hue"}, \code{"lightness"}, \code{"chroma"}, or
+an explicit character vector of entry names. See \code{\link[=energypal_orders]{energypal_orders()}}.
 
-\item{label_style}{One of 'id','short','long','default' determining the naming of the returned vector.
-id = internal canonical name; short/long = corresponding hierarchy labels if present;
-default = hierarchy label_default column (long > short > id).}
+\strong{Presentation only.} Orderings, and the numeric properties behind them,
+exist to arrange legends and chart series. They are indicative values, not
+validated figures, and must not be used in calculations.}
 
-\item{drop_na_colors}{Logical; drop rows without a defined color (default TRUE).}
+\item{direction}{\code{1} (default) or \code{-1} to reverse the chosen order.}
 
-\item{unique_names}{Logical; ensure returned names are unique (deduplicate by appending numeric suffix) (default TRUE).}
+\item{include_groups}{Logical; include aggregate group entries such as
+\code{FossilFuels} (default \code{FALSE}).}
+
+\item{include_carriers}{Logical; include carrier or technology entries — the
+main level of the palette (default \code{TRUE}).}
+
+\item{include_subtypes}{Logical; include subtype entries such as \code{Anthracite}
+(default \code{FALSE}).}
+
+\item{label_style}{How to name the returned vector: \code{"id"} (canonical
+identifier, the default), \code{"short"}, \code{"long"}, or \code{"default"}
+(long if present, else short, else id).}
+
+\item{drop_na_colors}{Logical; drop entries with no colour (default \code{TRUE}).}
+
+\item{unique_names}{Logical; make the returned names unique by appending a
+numeric suffix to duplicates (default \code{TRUE}).}
 }
 \value{
-Named character vector of hex colors (possibly zero length if none match filters).
+A named character vector of hex colours.
 }
 \description{
-Returns a named vector of colors for either the carriers or technologies
-section of the hierarchy. Provides flexible control over inclusion of
-group rows, carrier rows, and subtype rows, along with selection of which
-label should be used for the names of the returned vector.
+Returns a named vector of colours from a palette, in the style of
+\code{RColorBrewer::brewer.pal()}. The first argument selects the palette by name;
+\code{energypal_info()} lists what is available.
+}
+\details{
+By default you get the palette's main level only — the carriers or
+technologies themselves, 17 of them for \code{"carriers"}. The aggregate groups
+above them (\code{FossilFuels}, \code{Renewable}) and the subtypes below
+(\code{Anthracite}, \code{Lignite}) are available through \code{include_groups} and
+\code{include_subtypes}, but are off by default because a plotting palette wants
+distinct colours, and adjacent subtypes are deliberately near-identical.
+
+Palettes are plain YAML files, so a project can supply its own via \verb{file =}
+or \code{\link[=energypal_register]{energypal_register()}} and use it everywhere a built-in name works.
+}
+\examples{
+# The default carrier palette: 17 colours, one per carrier
+energypal()
+
+# A published report's colours, same identifiers
+energypal("ipcc")
+
+# Brewer-style: just the first few
+energypal("eia", n = 5)
+
+# Readable names for legends
+energypal("carriers", label_style = "long")
+
+# The full hierarchy, groups and fuel subtypes included
+length(energypal("carriers", include_groups = TRUE, include_subtypes = TRUE))
+
+# What is available
+energypal_info()$name
+}
+\seealso{
+\code{\link[=energypal_info]{energypal_info()}} to list the available palettes,
+\code{\link[=energypal_table]{energypal_table()}} for the underlying table, and \code{\link[=energypal_colors]{energypal_colors()}} to
+map data labels to colours.
 }

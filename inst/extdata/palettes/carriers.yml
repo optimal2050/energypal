@@ -1,0 +1,349 @@
+# Energy carriers palette
+#
+# The primary energy-carrier taxonomy: fuels and energy vectors, with subtypes.
+# This is the default palette used when none is named.
+#
+# References:
+#   IPCC 2006 Guidelines (Vol.2 Energy) https://www.ipcc-nggip.iges.or.jp/public/2006gl/
+#   IEA World Energy Balances https://www.iea.org/data-and-statistics
+#   EIA Fuel Categories https://www.eia.gov/
+#   IRENA / REN21 Renewable Classifications
+
+meta:
+  name: carriers
+  title: Energy carriers
+  source: IPCC 2006 Guidelines, IEA World Energy Balances, EIA fuel categories
+  url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/
+  license: >
+    Colours are energypal's own, following IEA World Energy Outlook conventions
+    (dark grey coal, blue gas, orange solar, pale blue wind). They are not
+    reproduced from any single published figure. The taxonomy follows the
+    classifications cited per branch as `_taxonomy_source`.
+  version: "0.1.1"
+
+# ---------------------------------------------------------------------------
+# Orderings
+#
+# EVERYTHING BELOW IS FOR ARRANGING VISUALS. None of these sequences, and none
+# of the numbers in `properties:`, is a model input. They order legends and
+# chart series; they are not validated figures and must not be used in
+# calculations. Carriers a sequence omits keep file order and fall to the end.
+# ---------------------------------------------------------------------------
+orders:
+  carbon_intensity:
+    _note: >
+      Presentation only. Orders chart series and legends; NOT a model input and
+      not to be used in calculations. Lifecycle medians vary widely with fuel
+      quality, plant vintage, capacity factor and system boundary.
+    _source: "IPCC AR5 WGIII, Annex III, Table A.III.2 (lifecycle medians)"
+    _url: "https://www.ipcc.ch/site/assets/uploads/2018/02/ipcc_wg3_ar5_annex-iii.pdf"
+    _order: [FossilCoal, FossilOil, FossilGas, Bioenergy, Solar, Geothermal,
+             Hydro, Nuclear, Wind]
+
+  dispatchability:
+    _note: >
+      Presentation only. Conventional order for drawing a generation stack,
+      dispatchable first and variable last. Not an operational ranking; real
+      flexibility is plant- and system-specific.
+    _source: "IEA World Energy Outlook generation-stack conventions"
+    _order: [FossilGas, FossilOil, FossilCoal, Bioenergy, Nuclear, Geothermal,
+             Hydro, Storage, Wind, Solar]
+
+  merit_order:
+    _note: >
+      Presentation only. Indicative short-run marginal cost order for drawing
+      dispatch stacks. Real merit order is system- and time-specific and must
+      come from the model, never from this file.
+    _source: "Conventional dispatch-stack ordering; indicative only"
+    _order: [Solar, Wind, Hydro, Nuclear, Bioenergy, FossilCoal, FossilGas,
+             FossilOil]
+
+  renewability:
+    _note: >
+      Presentation only. Groups by origin - fossil, then other non-renewable,
+      then renewable - as most published energy-mix charts stack them.
+    _source: "IEA / IRENA energy-mix chart conventions"
+    _order: [FossilCoal, FossilOil, FossilGas, Nuclear, Other, Bioenergy,
+             Hydro, Geothermal, Wind, Solar]
+
+# Numeric properties. Provenance is declared once here; values sit on the
+# entries below as `_carbon_intensity:`.
+properties:
+  carbon_intensity:
+    _note: >
+      Presentation only - for ordering and shading. NOT a model input. These are
+      indicative lifecycle medians across a wide reported range; use figures
+      from your own scenario or inventory for any calculation.
+    _source: "IPCC AR5 WGIII, Annex III, Table A.III.2 (lifecycle medians)"
+    _url: "https://www.ipcc.ch/site/assets/uploads/2018/02/ipcc_wg3_ar5_annex-iii.pdf"
+    _unit: "gCO2eq/kWh"
+
+  taxonomy_source:
+    _note: >
+      Provenance, not a figure - nothing here is orderable or usable in a
+      calculation. It records which published classification each branch of the
+      taxonomy follows, because they do not all come from the same place and
+      several have no external source at all.
+
+colors:
+  FossilFuels:
+    _color: "#555555"  # Aggregate fossil group color (neutral dark gray)
+    _short: Fossil
+    _long: Fossil Fuels
+    _aliases: [fossil, fossil fuels, fossil energy]
+    _taxonomy_source: "IPCC 2006 Guidelines for National Greenhouse Gas Inventories, Vol. 2 (Energy), fuel classification"
+    FossilCoal:
+      _color: "#2C2C2C"
+      _short: Coal
+      _long: Coal
+      _aliases: [coal, hard coal, steam coal, thermal coal, coal power, coal fired]
+      _carbon_intensity: 820
+      subtypes:
+        Anthracite: "#1E1E1E"
+        Bituminous: "#343434"
+        SubBituminous: "#4A4A4A"
+        Lignite: "#5C5C5C"
+        Coke: "#3A3A3A"
+        OtherFossilCoal: "#2C2C2C"
+    FossilOil:
+      _color: "#8B4513"
+      _short: Oil
+      _long: Oil
+      _aliases: [oil, petroleum, crude, crude oil, fuel oil, diesel, gasoline, petrol,
+                 jet fuel, kerosene, lpg, ngl, liquid fuels]
+      _carbon_intensity: 650
+      subtypes:
+        Crude: "#8B4513"
+        ResidualFuelOil: "#7A3E12"
+        DistillateFuelOil: "#9A4F19"
+        MotorGasoline: "#A85A1F"
+        JetFuel: "#95501B"
+        LPG_NGL: "#B16528"
+        OtherFossilOil: "#8B4513"
+    FossilGas:
+      _color: "#4682B4"
+      _short: Gas
+      _long: Natural Gas
+      # CCGT/OCGT are how plant-level datasets normally name gas capacity, and
+      # the technologies palette already knows them; the carriers taxonomy
+      # should not be the one that fails on real fleet data.
+      _aliases: [gas, natural gas, nat gas, ng, methane, ch4, fossil gas, lng, cng,
+                 ccgt, ocgt, combined cycle, open cycle, gas turbine]
+      _carbon_intensity: 490
+      subtypes:
+        NaturalGas: "#4682B4"
+        ShaleGas: "#4F8CBE"
+        TightGas: "#5A96C8"
+        LNG: "#639FD1"
+        AssociatedGas: "#6DA8DB"
+        OtherFossilGas: "#4682B4"
+  Renewable:
+    _color: "#0FAF3F"  # Aggregate renewable green
+    _short: RE
+    _long: Renewables
+    _aliases: [renewable, renewables, renewable energy, re]
+    _taxonomy_source: "IEA World Energy Balances and IRENA technology classifications"
+    Bioenergy:
+      _color: "#228B22"
+      _short: Bio
+      _long: Bioenergy
+      _aliases: [bio, biomass, biofuel, biofuels, solid biomass, wood, ethanol,
+                 biodiesel, biogas, waste]
+      _carbon_intensity: 230
+      subtypes:
+        SolidBiomass: "#228B22"
+        Biogas: "#32CD32"
+        Ethanol: "#3DCB3D"
+        Biodiesel: "#40D240"
+        Waste: "#4AA04A"
+        OtherBioenergy: "#228B22"
+    Hydro:
+      _color: "#0080FF"
+      _short: Hydro
+      _long: Hydroelectric Power
+      _aliases: [hydro, hydropower, hydroelectric, hydroelectricity, water power,
+                 run of river]
+      _carbon_intensity: 24
+      subtypes:
+        LargeHydro: "#0080FF"
+        SmallHydro: "#3399FF"
+        RunOfRiver: "#1A8BFF"
+        PumpedStorage: "#20B2AA"
+        OtherHydro: "#0080FF"
+    Wind:
+      _color: "#87CEEB"
+      _short: Wind
+      _long: Wind
+      _aliases: [wind, wind power, wind energy, onshore wind, offshore wind,
+                 wind turbine]
+      _carbon_intensity: 11
+      subtypes:
+        Onshore: "#87CEEB"
+        Offshore: "#6BB7D6"
+        OtherWind: "#87CEEB"
+    Solar:
+      _color: "#FFA500"
+      _short: Solar
+      _long: Solar
+      _aliases: [solar, pv, photovoltaic, photovoltaics, solar pv, solar power,
+                 solar energy]
+      _carbon_intensity: 48
+      subtypes:
+        SolarPV: "#FFA500"
+        CSP: "#FFB347"
+        SolarThermal: "#FFC166"
+        OtherSolar: "#FFA500"
+    Geothermal:
+      _color: "#CD853F"
+      _short: Geo
+      _long: Geothermal
+      _aliases: [geothermal, geo, hydrothermal, egs, ground source]
+      _carbon_intensity: 38
+      subtypes:
+        Hydrothermal: "#CD853F"
+        EGS: "#B27336"
+        OtherGeothermal: "#CD853F"
+    OtherRenewables:
+      _color: "#32CD32"
+      _short: Other RE
+      _long: Other Renewables
+      _aliases: [other renewables, other renewable, wave, tidal, marine, ocean]
+      subtypes:
+        Wave: "#2EBB2E"
+        Tidal: "#28A828"
+        OceanThermal: "#249624"
+        OtherOtherRenewables: "#32CD32"
+  Nuclear:
+    _color: "#FFD700"  # Aggregate nuclear (matches core nuclear color)
+    _short: Nuclear
+    _long: Nuclear
+    _taxonomy_source: "IEA World Energy Balances"
+    Nuclear:
+      _color: "#FFD700"
+      _short: Nuclear
+      _long: Nuclear
+      _aliases: [nuclear, nuclear power, nuclear energy, uranium, atomic]
+      _carbon_intensity: 12
+      subtypes:
+        PWR: "#FFD700"
+        BWR: "#E6C300"
+        SMR: "#D4B000"
+        OtherNuclear: "#FFD700"
+  Electricity:
+    _color: "#1F4BA8"  # Placeholder electricity energy carrier color (review)
+    _short: Elec
+    _long: Electricity
+    _taxonomy_source: "IEA World Energy Balances (secondary energy carrier)"
+    Electricity:
+      _color: "#1F4BA8"
+      _short: Elec
+      _long: Electricity
+      _aliases: [electricity, electric, elec, power]
+      subtypes: {}
+      # No subtypes defined; placeholder Other removed as not applicable
+  Heat:
+    _color: "#CC5500"  # Placeholder heat carrier color (review / adjust for contrast)
+    _short: Heat
+    _long: Heat
+    _taxonomy_source: "IEA World Energy Balances (secondary energy carrier)"
+    Heat:
+      _color: "#CC5500"
+      _short: Heat
+      _long: Heat
+      _aliases: [heat, heating, district heat, district heating]
+      subtypes: {}
+      # No subtypes defined; placeholder Other removed as not applicable
+  Synthetic:
+    _color: "#B06A23"  # Aggregate synthetic fuels family (warm brown-orange)
+    _short: Synthetic
+    _long: Synthetic Fuels
+    _aliases: [synthetic, power to x, ptx]
+    _taxonomy_source: "energypal extension - no equivalent branch in the cited sources"
+    Hydrogen:
+      _color: "#00B5E2"
+      _short: H2
+      _long: Hydrogen
+      _aliases: [hydrogen, h2, green hydrogen, blue hydrogen, grey hydrogen,
+                 pink hydrogen, turquoise hydrogen]
+      subtypes:
+        GreenHydrogen: "#00B5E2"
+        BlueHydrogen: "#0099C4"
+        GreyHydrogen: "#7F9FAA"
+        PinkHydrogen: "#C26FBF"
+        TurquoiseHydrogen: "#1CA6A6"
+        OtherHydrogen: "#00B5E2"
+    HydrogenDerivatives:
+      _color: "#008FB4"
+      _short: H2 Deriv.
+      _long: Hydrogen Derivatives
+      _aliases: [hydrogen derivatives, ammonia, nh3, lohc]
+      subtypes:
+        Ammonia: "#008FB4"
+        MethanolSynthetic: "#27A7C8"
+        LOHC: "#1E8296"
+        OtherHydrogenDerivatives: "#008FB4"
+    SyntheticFuels:
+      _color: "#B5651D"
+      _short: SynFuels
+      _long: Synthetic Fuels
+      _aliases: [synthetic fuels, synfuels, e-fuels, efuels, e-methane, e-methanol,
+                 e-diesel, e-jet, ft liquids]
+      subtypes:
+        eMethane: "#C27730"
+        eMethanol: "#CE8542"
+        eDiesel: "#A85915"
+        eJetFuel: "#9E5210"
+        FT_Liquids: "#B06A23"
+        OtherSyntheticFuels: "#B5651D"
+  Storage:
+    _color: "#9370DB"  # Standalone storage category (moved from Other)
+    _short: Storage
+    _long: Energy Storage
+    _taxonomy_source: "energypal extension - no equivalent branch in the cited sources"
+    Storage:
+      _color: "#9370DB"
+      _short: Storage
+      _long: Energy Storage
+      _aliases: [storage, energy storage, battery, batteries, thermal storage]
+      subtypes:
+        Battery: "#9370DB"
+        Hydrogen: "#8A67D2"
+        ThermalStorage: "#7E5BC6"
+        OtherStorage: "#9370DB"
+  Other:
+    _color: "#808080"  # Aggregate other / miscellaneous group
+    _short: Other
+    _long: Other
+    _taxonomy_source: "Residual category; not a published classification"
+    Other:
+      _color: "#C0C0C0"
+      _short: Other
+      _long: Other
+      _aliases: [other, misc, miscellaneous, unspecified]
+      subtypes: {}
+
+
+# ---------------------------------------------------------------------------
+# Origin of this file, carried over from the single hierarchical palette that
+# carriers.yml and technologies.yml were split out of. Kept verbatim apart from
+# the licence line, which is superseded: the package is Apache 2.0 and each
+# palette states its own content terms in `meta.license` above.
+#
+# The first note is why no separate `iea` palette ships - it would have been
+# this one under another name.
+# ---------------------------------------------------------------------------
+metadata:
+  version: "0.1.1"
+  created: "2025-09-15"
+  notes: |
+    Colors are provisional and designed to maintain visual continuity with existing iea_primary palette.
+    Subtype shades are adjusted primarily via lightness shifts; further refinement may include perceptual
+    uniformity adjustments (e.g., OKLCH) and color-blind safety evaluation.
+    v0.1.1: Added sectoral technology groupings (Industry, Transport, Buildings, AgricultureForestryFishing,
+            EnergyTransformation, NonEnergyUse) with provisional color assignments.
+  references:
+    - IPCC 2006 Guidelines for National Greenhouse Gas Inventories
+    - IEA World Energy Balances
+    - EIA Fuel Category Definitions
+    - IRENA Technology Classifications
+    - REN21 Global Status Report

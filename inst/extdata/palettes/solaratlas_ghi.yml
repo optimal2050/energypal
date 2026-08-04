@@ -1,0 +1,88 @@
+# Global Solar Atlas - global horizontal irradiation
+#
+# Extracted from the published poster map, which is a downloadable Work
+# under CC BY 4.0. Legend labels run 2.2-7.4 kWh/m2 per day
+# (803-2702 per year).
+#
+# energypal is not affiliated with or endorsed by Solargis or the World
+# Bank Group.
+
+meta:
+  name: "solaratlas_ghi"
+  title: "Global Solar Atlas GHI"
+  family: "solaratlas"
+  measure: "ghi"
+  default: true
+  type: "continuous"
+  unit: "kWh/m2/yr"
+  source: "Global Solar Atlas 2.0 world GHI poster map (World_GHI_poster-map_1500x800mm-300dpi)"
+  url: "https://globalsolaratlas.info"
+  license: "CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), with the mandatory WIPO/UNCITRAL dispute-resolution addition in the GSA terms of use"
+  attribution: >
+    [Data/information/map] obtained from the Global Solar Atlas 2.0, a free, web-based
+    application developed and operated by the company Solargis s.r.o. on behalf of the
+    World Bank Group, utilizing Solargis data, with funding provided by the Energy
+    Sector Management Assistance Program (ESMAP). For additional information:
+    https://globalsolaratlas.info
+  version: "0.1.0"
+
+# 28 stops, low to high
+colors:
+  - "#5B9BA8"
+  - "#5FA9B0"
+  - "#63BAB0"
+  - "#69C9A9"
+  - "#70DB91"
+  - "#89E874"
+  - "#A8ED66"
+  - "#C4F053"
+  - "#DBF246"
+  - "#ECF545"
+  - "#FAF641"
+  - "#FCE939"
+  - "#FBDB32"
+  - "#FAC82D"
+  - "#F9B319"
+  - "#F79F11"
+  - "#F58A0F"
+  - "#EE780E"
+  - "#EB6217"
+  - "#E74C25"
+  - "#DE3741"
+  - "#E24A61"
+  - "#E75C7C"
+  - "#EE6E96"
+  - "#F282AC"
+  - "#F794BC"
+  - "#FCA7CA"
+  - "#FFBAD8"
+
+# 27 break points -> 28 bins
+breaks:
+  - 803
+  - 876
+  - 949
+  - 1022
+  - 1095
+  - 1168
+  - 1241
+  - 1314
+  - 1387
+  - 1460
+  - 1533
+  - 1606
+  - 1679
+  - 1752
+  - 1826
+  - 1899
+  - 1972
+  - 2045
+  - 2118
+  - 2191
+  - 2264
+  - 2337
+  - 2410
+  - 2483
+  - 2556
+  - 2629
+  - 2702

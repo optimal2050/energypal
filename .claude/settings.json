@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Rscript -e *)",
+      "Bash(R CMD build *)",
+      "Bash(R CMD check *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)"
+    ],
+    "deny": [
+      "Bash(git push*)"
+    ]
+  }
+}

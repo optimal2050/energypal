@@ -1,0 +1,28 @@
+// pkgdown's dark theme inverts and hue-rotates every plot:
+//
+//   [data-bs-theme="dark"] img.r-plt { filter: invert(100%) hue-rotate(180deg) }
+//
+// That is a good default. A white-background line chart then sits comfortably on
+// a dark page, and the double transform lands most hues near where they started.
+//
+// For this package it is fatal. Every figure here exists to show an exact
+// colour, and "near where they started" is not the same colour: the swatches,
+// the ramps and the fuel-mix charts would all be wrong, and wrong in a way a
+// reader has no way to detect. The gallery would be actively misleading.
+//
+// So plots keep their literal colours in both themes. The white plot background
+// is the cost, and it is the right trade for a colour reference.
+
+[data-bs-theme="dark"] {
+  img.r-plt,
+  .cell-output-display img,
+  .html-widget {
+    filter: none !important;
+  }
+
+  // let the white figures read as deliberate cards rather than as glare
+  img.r-plt {
+    background-color: #fff;
+    border-radius: 0.25rem;
+  }
+}

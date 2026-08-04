@@ -1,710 +1,357 @@
-#' Smart Energy Source Mapping (Enhanced)
-#'
-#' Intelligently map energy source names to colors using a unified matching system
-#' with exact matches, canonicalized matching, hierarchy aliases, fuzzy matching,
-#' and regular expressions.
-#'
-#' @param sources Character vector of energy source names to map
-#' @param palette_name Character string specifying the palette to use (default: "carriers")
-#' @param match_method Character string specifying mapping method:
-#'   "exact", "canonical", "alias", "fuzzy", "regex", or "auto" (default: "auto")
-#' @param unmapped_color Color to use for unmapped sources (default: "#999999")
-#' @param case_sensitive Logical, whether matching should be case sensitive (default: FALSE)
-#' @param max_distance Maximum normalized distance for fuzzy matching (default: 0.4)
-#' @param regex_patterns List of regex patterns or "auto" to generate from palette names
-#' @param warn Logical, emit warnings for ambiguous matches (default: TRUE)
-#'
-#' @return A named vector of colors corresponding to the input sources
-#' @export
-#'
-#' @examples
-#' # Basic mapping
-#' sources <- c("Coal", "Natural Gas", "Solar", "Wind")
-#' energy_colors(sources)
-#'
-#' # Fuzzy matching for similar names
-#' sources <- c("coal power", "nat gas", "solar pv", "wind power")
-#' energy_colors(sources, match_method = "fuzzy")
-#'
-#' # Using regex patterns
-#' energy_colors(sources, match_method = "regex")
-#'
-#' # Using specific methods only
-#' energy_colors(sources, match_method = "exact")
-energy_colors <- function(sources,
-                           palette_name = "carriers",
-                           match_method = "auto",
-                           unmapped_color = "#999999",
-                           case_sensitive = FALSE,
-                           # apply_variations = NULL,
-                           # variation_type = NULL,
-                           # variation_intensity = NULL
-                          ...) {
-  # Ensure plain character vector (avoid factor issues when using tolower/gsub)
-  if (!is.null(sources)) sources <- as.character(sources)
+## Matching data labels to palette entries
+#
+# Real datasets do not use canonical identifiers. They say "Natural Gas",
+# "nat gas", "COAL1" or "Solar PV" where the palette says FossilGas, FossilCoal,
+# SolarPV. This file resolves the former to the latter through a sequence of
+# increasingly permissive strategies, stopping at the first that succeeds for a
+# given label and reporting which one it was.
+#
+#   exact      the label is an entry name
+#   canonical  it is, once case, spacing, punctuation and digits are stripped
+#   alias      it is a declared `_aliases:` entry, or a _short/_long label
+#   fuzzy      it is within `max_distance` of one of the above
+#   contains   one of the above appears inside it ("Coal_Plant_2")
+#
+# Aliases come from the palette YAML, not from code. An earlier version carried
+# a hard-coded block of regular expressions here, which meant the spec was in
+# two places and the two disagreed.
 
-  # Use default palette if none specified
-  if (is.null(palette_name)) {
-    palette_name <- "carriers"
-    # palette_name <- get_default_energy_palette()
-  }
+.match_methods <- c("exact", "canonical", "alias", "fuzzy", "contains")
 
-  # Use package options if parameters not specified
-  # if (is.null(apply_variations)) {
-  #   apply_variations <- get_energy_options("enable_auto_variations")
-  # }
-  # if (is.null(variation_type)) {
-  #   variation_type <- get_energy_options("variation_type")
-  # }
-  # if (is.null(variation_intensity)) {
-  #   variation_intensity <- get_energy_options("variation_intensity")
-  # }
+# The first three establish that a label really does denote an entry; the last
+# two are informed guesses. The distinction decides what an entry with no colour
+# outranks - see `unpublished` in energypal_match().
+.precise_methods <- c("exact", "canonical", "alias")
 
-  # Get the palette
-  # palette <- if (identical(palette_name, "carriers")) {
-  #   energypal(section = "carriers", include_groups = FALSE, include_carriers = TRUE, include_subtypes = FALSE, label_style = "id")
-  # } else {
-  #   energypal(section = "carriers", include_groups = FALSE, include_carriers = TRUE, include_subtypes = FALSE, label_style = "id")
-  # }
-  palette <- energypal(palette_name, include_groups = T)
+# Shortest term allowed to match as a substring in the `contains` stage.
+.min_contains <- 4L
 
-  # Normalize case if needed
-  if (!case_sensitive) {
-    search_names <- tolower(names(palette))
-    search_sources <- tolower(sources)
-  } else {
-    search_names <- names(palette)
-    search_sources <- sources
-  }
-
-  # Initialize result vector
-  result <- rep(unmapped_color, length(sources))
-  names(result) <- sources
-
-  if (match_method == "auto") {
-    # Try exact first, then fuzzy, then regex
-    result <- .map_exact(result, sources, search_sources, search_names, palette)
-    unmapped_idx <- which(result == unmapped_color)
-    if (length(unmapped_idx) > 0) {
-      result <- .map_fuzzy(result, sources, search_sources, search_names, palette, unmapped_idx)
-      unmapped_idx <- which(result == unmapped_color)
-      if (length(unmapped_idx) > 0) {
-        result <- .map_regex(result, sources, search_sources, search_names, palette, unmapped_idx)
-      }
-    }
-  } else if (match_method == "exact") {
-    result <- .map_exact(result, sources, search_sources, search_names, palette)
-  } else if (match_method == "fuzzy") {
-    result <- .map_fuzzy(result, sources, search_sources, search_names, palette)
-  } else if (match_method == "regex") {
-    result <- .map_regex(result, sources, search_sources, search_names, palette)
-  } else {
-    stop("Method must be one of: 'auto', 'exact', 'fuzzy', 'regex'")
-  }
-
-  # # Apply variations if enabled and needed
-  # if (apply_variations) {
-  #   result <- .apply_color_variations(result, sources, variation_type, variation_intensity)
-  # } else {
-  #   # Check for duplicates and warn if needed
-  #   .check_duplicate_mappings(result, sources)
-  # }
-
-  return(result)
-}
-
-#' Match Energy Source Names to Palette Entries (Enhanced)
-#'
-#' Robust multi-stage matcher using the unified matching system to align
-#' arbitrary data source labels to a palette's canonical source names.
-#' Now implements the full suite of matching algorithms:
-#' 1. Exact match
-#' 2. Canonicalized (case/space/punct/number stripped) match
-#' 3. Hierarchy alias matching (short/long labels)
-#' 4. Advanced fuzzy matching with synonyms and string distance
-#' 5. Regex pattern matching
-#'
-#' @param sources Character vector of (possibly repeated) source labels from data.
-#' @param palette_name Character palette identifier (default: "carriers").
-#' @param include_full_palette Logical; if TRUE, append unmatched palette rows even if
-#'   not present in data (default FALSE).
-#' @param max_distance Maximum normalized Levenshtein distance (0-1) allowed for fuzzy step (default 0.4).
-#' @param warn Logical; emit warnings about ambiguous matches (default TRUE).
-#' @param palette_vector Optional direct palette vector (overrides palette_name).
-#'
-#' @return data.frame with columns:
-#'   original (unique input), matched (palette name or NA), color (hex or NA),
-#'   method (match stage), candidates (semicolon list if ambiguous)
-#' @export
-#'
-#' @examples
-#' match_energy_sources(c("Coal","coal power","natural gas","Solar PV"))
-#'
-#' # With full palette included
-#' match_energy_sources(c("Coal", "Wind"), include_full_palette = TRUE)
-#'
-#' # Using custom distance threshold
-#' match_energy_sources(c("coalpwr", "windgen"), max_distance = 0.6)
-match_energy_sources <- function(sources,
-                                 palette_name = NULL,
-                                 include_full_palette = FALSE,
-                                 max_distance = 0.4,
-                                 warn = TRUE,
-                                 palette_vector = NULL) {
-  # Allow direct provision of a palette vector (hierarchy-first refactor path)
-  if (!is.null(palette_vector)) {
-    pal <- palette_vector
-  } else {
-    if (is.null(palette_name)) palette_name <- "carriers"
-    # For now, use energypal until get_energy_palette is available
-    pal <- energypal(palette_name, include_groups = FALSE)
-  }
-
-  # Use unified matching system
-  result <- match_energy_sources_v2(
-    sources = sources,
-    palette = pal,
-    methods = "auto",
-    case_sensitive = FALSE,
-    max_distance = max_distance,
-    regex_patterns = NULL,
-    warn = warn,
-    include_full_palette = include_full_palette
-  )
-
-  return(result)
-}
-
-
-# ============================================================================ #
-# UNIFIED ENERGY SOURCE MATCHING SYSTEM
-# ============================================================================ #
-
-# Core canonicalization function (improved from match_energy_sources)
+# lower, then strip everything that is not a letter
 .canonicalize <- function(x) {
-  # lower, remove all non-letters, collapse spaces
-  x2 <- tolower(x)
-  x2 <- gsub("[[:space:]]+", "", x2)
-  x2 <- gsub("[^a-z]+", "", x2)
-  x2
+  x <- tolower(as.character(x))
+  gsub("[^a-z]+", "", x)
 }
 
-# Core distance calculation function
 .norm_dist <- function(a, b) {
-  stringdist::stringdist(a, b, method = "lv") / max(nchar(a), nchar(b), 1)
+  stringdist::stringdist(a, b, method = "lv") / pmax(nchar(a), nchar(b), 1)
 }
 
-# Generate built-in energy patterns from hierarchy data
-.get_default_energy_patterns <- function() {
-  list(
-    # Fossil Fuels
-    "Coal" = c("coal", "lignite", "anthracite", "bituminous", "sub-?bituminous", "coke", "coalpower", "coalfired"),
-    "FossilCoal" = c("coal", "lignite", "anthracite", "bituminous", "sub-?bituminous", "coke", "coalpower", "coalfired"),
-    "Oil" = c("oil", "petroleum", "crude", "fuel.?oil", "diesel", "gasoline", "motor.?gasoline", "jet.?fuel", "lpg", "ngl"),
-    "FossilOil" = c("oil", "petroleum", "crude", "fuel.?oil", "diesel", "gasoline", "motor.?gasoline", "jet.?fuel", "lpg", "ngl"),
-    "Natural Gas" = c("(natural.?)?gas", "methane", "lng", "cng", "shale.?gas", "tight.?gas", "associated.?gas"),
-    "FossilGas" = c("(natural.?)?gas", "methane", "lng", "cng", "shale.?gas", "tight.?gas", "associated.?gas"),
-
-    # Nuclear
-    "Nuclear" = c("nuclear", "uranium", "reactor", "pwr", "bwr", "smr"),
-
-    # Renewables
-    "Bioenergy" = c("bio(energy|mass|gas|fuel)?", "wood", "ethanol", "biodiesel", "waste", "solid.?biomass"),
-    "Hydro" = c("hydro(electric)?", "water.?power", "pumped.?storage", "run.?of.?river", "large.?hydro", "small.?hydro"),
-    "Wind" = c("wind", "onshore", "offshore", "turbine", "wind.?power", "wind.?energy"),
-    "Solar" = c("solar", "pv", "photovoltaic", "csp", "solar.?thermal", "solar.?pv"),
-    "Geothermal" = c("geothermal", "hydrothermal", "egs", "ground.?source"),
-
-    # Synthetic
-    "Hydrogen" = c("hydrogen", "h2", "green.?hydrogen", "blue.?hydrogen", "grey.?hydrogen", "pink.?hydrogen", "turquoise.?hydrogen"),
-    "Synthetic" = c("synthetic", "e-?(methane|methanol|diesel|jet)", "ft.?liquids"),
-
-    # Storage
-    "Storage" = c("storage", "battery", "thermal.?storage"),
-
-    # Other Renewables
-    "OtherRenewables" = c("wave", "tidal", "ocean.?thermal", "renewable", "clean", "green"),
-    "Other Renewables" = c("wave", "tidal", "ocean.?thermal", "renewable", "clean", "green")
-  )
-}
-
-# ============================================================================ #
-# MODULAR MATCHING FUNCTIONS
-# ============================================================================ #
-
-# Exact string matching
-.match_exact <- function(sources, palette, case_sensitive = FALSE) {
-  if (!case_sensitive) {
-    search_names <- tolower(names(palette))
-    search_sources <- tolower(sources)
-  } else {
-    search_names <- names(palette)
-    search_sources <- sources
+# Every string that may stand for an entry: its name, its labels, its aliases.
+# Returns one row per (string, entry) pair, canonicalised.
+.lookup_table <- function(tab) {
+  add <- function(strings, kind) {
+    ok <- !is.na(strings) & nzchar(strings)
+    if (!any(ok)) return(NULL)
+    data.frame(term = strings[ok], name = tab$name[ok], color = tab$color[ok],
+               type = tab$type[ok], kind = kind, stringsAsFactors = FALSE)
   }
 
-  result <- data.frame(
-    original = sources,
-    matched = NA_character_,
-    color = NA_character_,
-    method = NA_character_,
-    candidates = NA_character_,
-    stringsAsFactors = FALSE
+  parts <- list(
+    add(tab$name, "name"),
+    add(tab$label_short, "label"),
+    add(tab$label_long, "label")
   )
 
-  exact_hits <- match(search_sources, search_names)
-  matched_exact <- !is.na(exact_hits)
-
-  if (any(matched_exact)) {
-    result$matched[matched_exact] <- names(palette)[exact_hits[matched_exact]]
-    result$color[matched_exact] <- unname(palette[exact_hits[matched_exact]])
-    result$method[matched_exact] <- "exact"
-  }
-
-  return(result)
-}
-
-# Canonicalized matching (case/space/punct/number stripped)
-#.match_stripped
-.match_canonical <- function(sources, palette, previous_result = NULL) {
-  if (is.null(previous_result)) {
-    result <- data.frame(
-      original = sources,
-      matched = NA_character_,
-      color = NA_character_,
-      method = NA_character_,
-      candidates = NA_character_,
+  # aliases are stored ';'-separated, one row per entry
+  has_alias <- !is.na(tab$aliases) & nzchar(tab$aliases)
+  if (any(has_alias)) {
+    idx <- which(has_alias)
+    split_alias <- strsplit(tab$aliases[idx], ";", fixed = TRUE)
+    reps <- lengths(split_alias)
+    parts[[length(parts) + 1L]] <- data.frame(
+      term = trimws(unlist(split_alias, use.names = FALSE)),
+      name = rep(tab$name[idx], reps),
+      color = rep(tab$color[idx], reps),
+      type = rep(tab$type[idx], reps),
+      kind = "alias",
       stringsAsFactors = FALSE
     )
-  } else {
-    result <- previous_result
   }
 
-  pal_names <- names(palette)
-  pal_canon <- .canonicalize(pal_names)
-  canon_input <- .canonicalize(sources)
-
-  remaining <- which(is.na(result$matched))
-
-  for (i in remaining) {
-    idx <- which(pal_canon == canon_input[i])
-    if (length(idx) == 1) {
-      result$matched[i] <- pal_names[idx]
-      result$color[i] <- unname(palette[idx])
-      result$method[i] <- "canonical"
-    }
-  }
-
-  return(result)
+  out <- do.call(rbind, parts[!vapply(parts, is.null, logical(1))])
+  # Colourless rows are kept, flagged. They are what lets the matcher tell "this
+  # palette publishes nothing for geothermal" apart from "no idea what that is".
+  out$has_color <- !is.na(out$color) & nzchar(out$color)
+  out$canon <- .canonicalize(out$term)
+  out <- out[nzchar(out$canon), , drop = FALSE]
+  rownames(out) <- NULL
+  out
 }
 
-# Hierarchy alias matching (short/long labels)
-.match_alias <- function(sources, palette, previous_result = NULL) {
-  if (is.null(previous_result)) {
-    result <- data.frame(
-      original = sources,
-      matched = NA_character_,
-      color = NA_character_,
-      method = NA_character_,
-      candidates = NA_character_,
-      stringsAsFactors = FALSE
-    )
-  } else {
-    result <- previous_result
-  }
-
-  # Build hierarchy aliases if available
-  hierarchy_aliases <- NULL
-  if (requireNamespace("yaml", quietly = TRUE)) {
-    alias_map <- list()
-    safe_add <- function(tbl) {
-      if (!is.null(tbl) && is.data.frame(tbl)) {
-        in_pal <- tbl$name %in% names(palette)
-        if (any(in_pal)) {
-          sub <- tbl[in_pal, , drop = FALSE]
-          if ("label_long" %in% names(sub)) {
-            valid_long <- !is.na(sub$label_long) & nzchar(sub$label_long)
-            if (any(valid_long)) alias_map[sub$label_long[valid_long]] <<- sub$name[valid_long]
-          }
-          if ("label_short" %in% names(sub)) {
-            valid_short <- !is.na(sub$label_short) & nzchar(sub$label_short)
-            if (any(valid_short)) {
-              for (i in which(valid_short)) {
-                al <- sub$label_short[i]; canon <- sub$name[i]
-                if (!is.null(alias_map[[al]])) next
-                alias_map[[al]] <<- canon
-              }
-            }
-          }
-        }
-      }
-    }
-
-    # Try to get hierarchy data
-    h1 <- try(hierarchy_to_table("carriers", include_groups = FALSE), silent = TRUE)
-    if (!inherits(h1, "try-error")) safe_add(h1)
-    h2 <- try(hierarchy_to_table("technologies", include_groups = FALSE), silent = TRUE)
-    if (!inherits(h2, "try-error")) safe_add(h2)
-
-    if (length(alias_map)) {
-      hierarchy_aliases <- data.frame(
-        alias = names(alias_map),
-        canonical = unlist(alias_map, use.names = FALSE),
-        stringsAsFactors = FALSE
-      )
-    }
-  }
-
-  remaining <- which(is.na(result$matched))
-
-  if (length(remaining) > 0 && !is.null(hierarchy_aliases)) {
-    for (i in remaining) {
-      ali <- hierarchy_aliases$canonical[hierarchy_aliases$alias == sources[i]]
-      if (length(ali) == 1) {
-        result$matched[i] <- ali
-        result$color[i] <- unname(palette[ali])
-        result$method[i] <- "alias"
-      }
-    }
-  }
-
-  return(result)
+# Substring matching, for labels like "Coal_Plant_2" or "SOLAR_NY".
+#
+# Canonicalising strips the separators, so a term found in the middle of a label
+# has no boundary to be checked against and is very often an accident: "other"
+# sits inside "geothermal", "oil" inside "boiler". Requiring the match to be
+# anchored at one end removes those without losing the real cases, which are all
+# of the form <carrier><qualifier> or <qualifier><carrier>.
+#
+# The length floor stays for the other failure mode: short aliases are fine as
+# whole labels ("RE", "PV", "NG") and disastrous inside one.
+.contains_hits <- function(lut, cs) {
+  ok <- nchar(lut$canon) >= .min_contains & nchar(lut$canon) < nchar(cs)
+  if (!any(ok)) return(NULL)
+  anchored <- ok & (startsWith(cs, lut$canon) | endsWith(cs, lut$canon))
+  if (!any(anchored)) return(NULL)
+  cand <- lut[anchored, , drop = FALSE]
+  # longest match wins: "biogas" should not be taken for "gas"
+  cand[nchar(cand$canon) == max(nchar(cand$canon)), , drop = FALSE]
 }
 
-# Advanced fuzzy matching with synonyms and string distance
-.match_fuzzy <- function(sources, palette,
-                         previous_result = NULL,
-                         max_distance = 0.4, warn = TRUE) {
-  if (is.null(previous_result)) {
-    result <- data.frame(
-      original = sources,
-      matched = NA_character_,
-      color = NA_character_,
-      method = NA_character_,
-      candidates = NA_character_,
-      stringsAsFactors = FALSE
-    )
-  } else {
-    result <- previous_result
+# Resolve candidate rows to a single answer.
+#
+# Two kinds of collision are not user-facing ambiguity and must not warn:
+#   - several entries sharing one colour (Nuclear is both a group and the
+#     carrier inside it, both #FFD700)
+#   - the same *name* at different levels (Other the group vs Other the carrier,
+#     which do differ in colour). Here the specific entry is what the data means,
+#     so prefer carrier, then subtype, then group.
+# Only genuinely different entries are reported as ambiguous.
+.type_rank <- c(carrier = 1L, subtype = 2L, group = 3L)
+
+.settle <- function(cands, original, method, warn) {
+  if (length(unique(cands$color)) == 1L) {
+    return(list(name = cands$name[1], color = cands$color[1], method = method,
+                candidates = NA_character_))
   }
 
-  # Build synonym map using default patterns
-  energy_patterns <- .get_default_energy_patterns()
-
-  # Create token reverse lookup
-  token_reverse <- data.frame(
-    token = character(0),
-    canonical = character(0),
-    stringsAsFactors = FALSE
-  )
-
-  for (canonical_name in names(energy_patterns)) {
-    if (canonical_name %in% names(palette)) {
-      tokens <- energy_patterns[[canonical_name]]
-      token_df <- data.frame(
-        token = tokens,
-        canonical = rep(canonical_name, length(tokens)),
-        stringsAsFactors = FALSE
-      )
-      token_reverse <- rbind(token_reverse, token_df)
-    }
+  if (length(unique(cands$name)) == 1L) {
+    rank <- .type_rank[cands$type]
+    rank[is.na(rank)] <- 99L
+    pick <- cands[order(rank), , drop = FALSE][1, ]
+    return(list(name = pick$name, color = pick$color, method = method,
+                candidates = NA_character_))
   }
 
-  if (nrow(token_reverse) > 0) {
-    token_reverse$token_canon <- .canonicalize(token_reverse$token)
+  choice <- cands[1, ]
+  if (warn) {
+    warning(sprintf("Ambiguous energy source '%s' could be %s; using '%s'",
+                    original, paste(unique(cands$name), collapse = ", "), choice$name),
+            call. = FALSE)
   }
-
-  remaining <- which(is.na(result$matched))
-  canon_input <- .canonicalize(sources)
-
-  for (i in remaining) {
-    ci <- canon_input[i]
-    cand_rows <- data.frame(token = character(0), canonical = character(0), stringsAsFactors = FALSE)
-
-    # First try exact canonical token match
-    if (nrow(token_reverse) > 0) {
-      cand_rows <- token_reverse[token_reverse$token_canon == ci, ]
-    }
-
-    # If no exact token match, try fuzzy distance
-    if (nrow(cand_rows) == 0 && nrow(token_reverse) > 0) {
-      dists <- vapply(token_reverse$token_canon, .norm_dist, numeric(1), b = ci)
-      min_d <- min(dists)
-      if (!is.infinite(min_d) && min_d <= max_distance) {
-        cand_rows <- token_reverse[dists <= min_d + 1e-8, ]
-      }
-    }
-
-    if (nrow(cand_rows) == 0) {
-      next
-    }
-
-    # Reduce to palette names still in palette
-    cand_pal <- unique(cand_rows$canonical[cand_rows$canonical %in% names(palette)])
-
-    if (length(cand_pal) == 1) {
-      nm <- cand_pal
-      result$matched[i] <- nm
-      result$color[i] <- unname(palette[nm])
-      result$method[i] <- "fuzzy"
-    } else if (length(cand_pal) > 1) {
-      # Disambiguate by computing distance to canonical names
-      d_name <- vapply(cand_pal, .norm_dist, numeric(1), b = ci)
-      best <- cand_pal[d_name == min(d_name)]
-      if (length(best) == 1) {
-        nm <- best
-        result$matched[i] <- nm
-        result$color[i] <- unname(palette[nm])
-        result$method[i] <- "fuzzy_disambiguated"
-      } else {
-        # Ambiguous
-        result$matched[i] <- best[1]
-        result$color[i] <- unname(palette[best[1]])
-        result$method[i] <- "fuzzy_ambiguous"
-        result$candidates[i] <- paste(cand_pal, collapse = ";")
-        if (warn) {
-          warning(sprintf("Ambiguous energy source '%s' could match: %s (selected '%s')",
-                         result$original[i], paste(cand_pal, collapse = ", "), best[1]), call. = FALSE)
-        }
-      }
-    }
-  }
-
-  return(result)
+  list(name = choice$name, color = choice$color,
+       method = paste0(method, "_ambiguous"),
+       candidates = paste(unique(cands$name), collapse = ";"))
 }
 
-# Regex pattern matching
-.match_regex <- function(sources, palette, previous_result = NULL, regex_patterns = NULL, case_sensitive = FALSE) {
-  if (is.null(previous_result)) {
-    result <- data.frame(
-      original = sources,
-      matched = NA_character_,
-      color = NA_character_,
-      method = NA_character_,
-      candidates = NA_character_,
-      stringsAsFactors = FALSE
-    )
-  } else {
-    result <- previous_result
-  }
-
-  # Use default patterns if none provided
-  if (is.null(regex_patterns)) {
-    regex_patterns <- .get_default_energy_patterns()
-  }
-
-  # Auto-generate patterns from palette names
-  if (identical(regex_patterns, "auto")) {
-    regex_patterns <- list()
-    for (pal_name in names(palette)) {
-      # Generate basic patterns from name
-      clean_name <- gsub("[^a-zA-Z ]", "", pal_name)
-      words <- unlist(strsplit(clean_name, "\\s+"))
-      patterns <- c(
-        tolower(pal_name),
-        tolower(clean_name),
-        paste(tolower(words), collapse = ".?"),
-        tolower(words)
-      )
-      regex_patterns[[pal_name]] <- unique(patterns[nzchar(patterns)])
-    }
-  }
-
-  remaining <- which(is.na(result$matched))
-  search_sources <- if (case_sensitive) sources else tolower(sources)
-
-  for (i in remaining) {
-    current_source <- search_sources[i]
-    if (is.na(current_source) || current_source == "") next
-
-    matched_patterns <- character(0)
-
-    for (pal_name in names(regex_patterns)) {
-      if (pal_name %in% names(palette)) {
-        patterns <- regex_patterns[[pal_name]]
-        for (pattern in patterns) {
-          if (grepl(pattern, current_source, perl = TRUE, ignore.case = !case_sensitive)) {
-            matched_patterns <- c(matched_patterns, pal_name)
-            break
-          }
-        }
-      }
-    }
-
-    if (length(matched_patterns) == 1) {
-      result$matched[i] <- matched_patterns[1]
-      result$color[i] <- unname(palette[matched_patterns[1]])
-      result$method[i] <- "regex"
-    } else if (length(matched_patterns) > 1) {
-      # Take first match but record ambiguity
-      result$matched[i] <- matched_patterns[1]
-      result$color[i] <- unname(palette[matched_patterns[1]])
-      result$method[i] <- "regex_ambiguous"
-      result$candidates[i] <- paste(matched_patterns, collapse = ";")
-    }
-  }
-
-  return(result)
-}
-
-# Legacy helper function for exact matching (backward compatibility)
-.map_exact <- function(result, sources, search_sources, search_names, palette, subset_idx = NULL) {
-  if (is.null(subset_idx)) {
-    subset_idx <- seq_along(sources)
-  }
-
-  for (i in subset_idx) {
-    exact_match <- which(search_names == search_sources[i])
-    if (length(exact_match) > 0) {
-      result[i] <- palette[exact_match[1]]
-    }
-  }
-  return(result)
-}
-
-# ============================================================================ #
-# UNIFIED MATCHING ENGINE
-# ============================================================================ #
-
-#' Unified Energy Source Matching Engine (Version 2)
+#' Match data labels to palette entries
 #'
-#' Advanced multi-stage matching system that combines all matching algorithms
-#' in a flexible, configurable way.
+#' Resolves the source labels found in real datasets to the canonical entries of
+#' a palette, and reports how each was resolved. Use this when you want to see or
+#' audit the mapping; use [energypal_colors()] when you just want the colours.
 #'
-#' @param sources Character vector of energy source names to match
-#' @param palette Named character vector of colors (palette)
-#' @param methods Character vector of methods to apply in order. Options:
-#'   "exact", "canonical", "alias", "fuzzy", "regex", or "auto" (default)
-#' @param case_sensitive Logical, whether matching should be case sensitive (default: FALSE)
-#' @param max_distance Maximum normalized distance for fuzzy matching (default: 0.4)
-#' @param regex_patterns List of regex patterns or "auto" to generate from palette names
-#' @param warn Logical, emit warnings for ambiguous matches (default: TRUE)
-#' @param include_full_palette Logical, include unmatched palette entries (default: FALSE)
+#' Matching proceeds in stages and stops at the first that succeeds for a given
+#' label: exact, canonicalised (case, spacing, punctuation and digits removed),
+#' declared alias, fuzzy (string distance), and finally containment, which
+#' catches labels like `"Coal_Plant_2"`.
 #'
-#' @return data.frame with columns: original, matched, color, method, candidates
+#' Aliases are declared in the palette file, so a project that supplies its own
+#' palette can teach the matcher its own vocabulary without any code.
+#'
+#' @param sources Character vector of labels from your data. Repeats are allowed;
+#'   the result has one row per distinct label.
+#' @param palette Name of a built-in or registered palette. Defaults to the
+#'   `energypal.palette` option, or `"carriers"`.
+#' @param file Path to a palette file, taking precedence over `palette`.
+#' @param method Stages to apply, in order. `"auto"` (default) uses all of them;
+#'   otherwise any of `"exact"`, `"canonical"`, `"alias"`, `"fuzzy"`,
+#'   `"contains"`.
+#' @param case_sensitive Logical; if `TRUE` the exact stage respects case
+#'   (default `FALSE`). Later stages are case-insensitive by construction.
+#' @param max_distance Maximum normalised edit distance for the fuzzy stage,
+#'   between 0 and 1 (default `0.4`).
+#' @param warn Logical; warn when a label matches entries of differing colours
+#'   (default `TRUE`).
+#' @param include_full_palette Logical; append palette entries that nothing in
+#'   `sources` matched (default `FALSE`).
+#'
+#' @return A data frame with one row per distinct source and columns `original`,
+#'   `matched` (entry name, or `NA`), `color`, `method` (which stage resolved it)
+#'   and `candidates` (`;`-separated, when the match was ambiguous).
+#' @examples
+#' energypal_match(c("Coal", "natural gas", "Solar PV", "COAL1"))
+#'
+#' # every label the bundled dataset uses resolves
+#' energypal_match(unique(owid_energy_mix$source))
+#'
+#' # restrict to strict matching only
+#' energypal_match(c("Coal", "nat gas"), method = c("exact", "canonical"))
+#' @seealso [energypal_colors()] for colours directly, [energypal()] for the palette.
 #' @export
-match_energy_sources_v2 <- function(sources,
-                                    palette = "carriers",
-                                    methods = "auto",
-                                    case_sensitive = FALSE,
-                                    max_distance = 0.4,
-                                    regex_patterns = NULL,
-                                    warn = TRUE,
-                                    include_full_palette = FALSE) {
-  # browser()
-
-  # Validate inputs
-  stopifnot(is.character(sources))
-  # stopifnot(is.character(palette) && !is.null(names(palette)))
-
-  # Get unique sources for processing
-  src_unique <- unique(sources)
-
-  # Define method sequence
-  if (identical(methods, "auto")) {
-    methods <- c("exact", "canonical", "alias", "fuzzy", "regex")
+energypal_match <- function(sources,
+                            palette = NULL,
+                            file = NULL,
+                            method = "auto",
+                            case_sensitive = FALSE,
+                            max_distance = 0.4,
+                            warn = TRUE,
+                            include_full_palette = FALSE) {
+  sources <- as.character(sources)
+  if (identical(method, "auto")) method <- .match_methods
+  bad <- setdiff(method, .match_methods)
+  if (length(bad)) {
+    stop("unknown matching method(s): ", paste(bad, collapse = ", "),
+         ". Available: ", paste(.match_methods, collapse = ", "), call. = FALSE)
   }
 
-  # Initialize result
-  result <- NULL
+  # Matching wants the widest lookup table, unlike the plotting default: data
+  # may well say "Anthracite" or "Fossil Fuels".
+  tab <- energypal_table(palette = palette, file = file, include_groups = TRUE)
+  lut <- .lookup_table(tab)
 
-  # Apply methods in sequence
-  for (method in methods) {
-    if (method == "exact") {
-      result <- .match_exact(src_unique, palette, case_sensitive)
-    } else if (method == "canonical") {
-      result <- .match_canonical(src_unique, palette, result)
-    } else if (method == "alias") {
-      result <- .match_alias(src_unique, palette, result)
-    } else if (method == "fuzzy") {
-      result <- .match_fuzzy(src_unique, palette, result, max_distance, warn)
-    } else if (method == "regex") {
-      result <- .match_regex(src_unique, palette, result, regex_patterns, case_sensitive)
-    } else {
-      warning("Unknown method: ", method, ". Skipping.")
-    }
-  }
+  src <- unique(sources)
+  res <- data.frame(original = src,
+                    matched = rep(NA_character_, length(src)),
+                    color = rep(NA_character_, length(src)),
+                    method = rep(NA_character_, length(src)),
+                    candidates = rep(NA_character_, length(src)),
+                    stringsAsFactors = FALSE)
+  if (!length(src)) return(res)
 
-  # Add unmatched palette entries if requested
-  if (include_full_palette) {
-    missing_pal <- setdiff(names(palette), result$matched)
-    if (length(missing_pal) > 0) {
-      add <- data.frame(
-        original = rep(NA_character_, length(missing_pal)),
-        matched = missing_pal,
-        color = unname(palette[missing_pal]),
-        method = "palette_fill",
-        candidates = NA_character_,
-        stringsAsFactors = FALSE
-      )
-      result <- rbind(result, add)
-    }
-  }
+  canon_src <- .canonicalize(src)
 
-  return(result)
-}
+  # Entries a precise stage identified but which this palette gives no colour.
+  # Held back until the precise stages are exhausted: a colourless subtype must
+  # not stop an alias from reaching its coloured parent.
+  unpublished <- rep(NA_character_, length(src))
 
-# Helper function for fuzzy matching
-.map_fuzzy <- function(result, sources, search_sources, search_names, palette, subset_idx = NULL) {
-  if (is.null(subset_idx)) {
-    subset_idx <- seq_along(sources)
-  }
-
-  for (i in subset_idx) {
-    # Skip if source is empty or invalid
-    current_source <- search_sources[i]
-    if (is.na(current_source) || current_source == "") {
-      next
+  for (stage in method) {
+    if (!stage %in% .precise_methods) {
+      settle <- which(is.na(res$matched) & !is.na(unpublished))
+      res$matched[settle] <- unpublished[settle]
+      res$method[settle] <- "unpublished"
     }
 
-    # Try partial matching
-    partial_match <- grep(current_source, search_names, fixed = TRUE)
-    if (length(partial_match) == 0) {
-      # Try reverse partial matching
-      partial_match <- which(sapply(search_names, function(x) {
-        if (is.na(x) || x == "") return(FALSE)
-        grepl(x, current_source, fixed = TRUE)
-      }))
-    }
+    todo <- which(is.na(res$matched))
+    if (!length(todo)) break
 
-    if (length(partial_match) > 0) {
-      result[i] <- palette[partial_match[1]]
-    }
-  }
-  return(result)
-}
+    for (i in todo) {
+      s <- src[i]
+      cs <- canon_src[i]
+      if (is.na(s) || !nzchar(s)) next
 
-# Helper function for regex matching
-.map_regex <- function(result, sources, search_sources, search_names, palette, subset_idx = NULL) {
-  if (is.null(subset_idx)) {
-    subset_idx <- seq_along(sources)
-  }
-
-  # Use the new unified regex matching system
-  energy_patterns <- .get_default_energy_patterns()
-
-  for (i in subset_idx) {
-    current_source <- search_sources[i]
-    if (is.na(current_source) || current_source == "") next
-
-    for (pal_name in names(energy_patterns)) {
-      if (pal_name %in% search_names) {
-        patterns <- energy_patterns[[pal_name]]
-        if (any(sapply(patterns, function(p) grepl(p, current_source, perl = TRUE, ignore.case = TRUE)))) {
-          pal_idx <- which(search_names == pal_name)[1]
-          result[i] <- palette[pal_idx]
-          break
+      hit <- switch(stage,
+        exact = {
+          if (case_sensitive) lut[lut$kind == "name" & lut$term == s, , drop = FALSE]
+          else lut[lut$kind == "name" & tolower(lut$term) == tolower(s), , drop = FALSE]
+        },
+        canonical = lut[lut$kind == "name" & lut$canon == cs, , drop = FALSE],
+        alias     = lut[lut$kind != "name" & lut$canon == cs, , drop = FALSE],
+        fuzzy     = {
+          col <- lut[lut$has_color, , drop = FALSE]
+          if (!nzchar(cs) || !nrow(col)) NULL else {
+            d <- .norm_dist(col$canon, cs)
+            m <- min(d)
+            if (m <= max_distance) col[d <= m + 1e-8, , drop = FALSE] else NULL
+          }
+        },
+        contains  = {
+          col <- lut[lut$has_color, , drop = FALSE]
+          if (!nzchar(cs) || !nrow(col)) NULL else .contains_hits(col, cs)
         }
+      )
+
+      if (is.null(hit) || !nrow(hit)) next
+
+      # A name the palette knows but declares no colour for is an answer, not a
+      # miss: the source publishes nothing for it. Remember it, and let the
+      # remaining precise stages try for a colour before settling.
+      if (!any(hit$has_color)) {
+        if (is.na(unpublished[i])) unpublished[i] <- hit$name[1]
+        next
       }
+      hit <- hit[hit$has_color, , drop = FALSE]
+
+      got <- .settle(hit, s, stage, warn)
+      res$matched[i] <- got$name
+      res$color[i] <- got$color
+      res$method[i] <- got$method
+      res$candidates[i] <- got$candidates
     }
   }
-  return(result)
+
+  # in case only precise stages were requested, so the loop never settled them
+  settle <- which(is.na(res$matched) & !is.na(unpublished))
+  res$matched[settle] <- unpublished[settle]
+  res$method[settle] <- "unpublished"
+
+  if (include_full_palette) {
+    missing <- setdiff(tab$name[!is.na(tab$color) & nzchar(tab$color)], res$matched)
+    if (length(missing)) {
+      keep <- !duplicated(tab$name)
+      extra <- tab[keep & tab$name %in% missing, , drop = FALSE]
+      res <- rbind(res, data.frame(
+        original = NA_character_, matched = extra$name, color = extra$color,
+        method = "palette_fill", candidates = NA_character_,
+        stringsAsFactors = FALSE
+      ))
+    }
+  }
+
+  rownames(res) <- NULL
+  res
 }
 
-# # Legacy helper functions for color variations (commented out)
-# .apply_color_variations <- function(result, sources, variation_type, variation_intensity) {
-# .check_duplicate_mappings <- function(result, sources) {
-# ...
+#' Colours for a vector of data labels
+#'
+#' Maps the source labels in your data straight to colours, resolving them
+#' against a palette with [energypal_match()]. Labels that cannot be
+#' resolved get `unmapped_color`.
+#'
+#' @inheritParams energypal_match
+#' @param unmapped_color Colour for labels that no stage could resolve
+#'   (default `"#999999"`).
+#' @param gradient Logical; when several labels resolve to the *same* carrier,
+#'   spread them into distinct shades of that carrier's colour instead of
+#'   drawing them identically (default `FALSE`). Grouping is by resolved carrier,
+#'   not by colour, so two carriers that happen to share a hex stay separate.
+#' @param spread,along Passed to [energypal_gradient()] when `gradient = TRUE`.
+#'
+#' @return A character vector of colours, the same length and order as
+#'   `sources`, named by the input labels.
+#' @examples
+#' energypal_colors(c("Coal", "Natural Gas", "Solar", "Wind"))
+#'
+#' # messy labels resolve too
+#' energypal_colors(c("coal power", "nat gas", "solar pv", "COAL1"))
+#'
+#' # a different published palette, same labels
+#' energypal_colors(c("Coal", "Natural Gas"), palette = "ipcc")
+#'
+#' # several series per carrier: three coal shades, one solar
+#' energypal_colors(c("COAL1", "COAL2", "COAL3", "SOLAR_NY"), gradient = TRUE)
+#'
+#' # anything unresolved is visibly grey rather than silently wrong
+#' energypal_colors(c("Coal", "Flux Capacitor"))
+#' @seealso [energypal_match()] to see how each label was resolved,
+#'   [energypal_gradient()] for the shading itself, [energypal()] for the palette.
+#' @export
+energypal_colors <- function(sources,
+                             palette = NULL,
+                             file = NULL,
+                             method = "auto",
+                             unmapped_color = "#999999",
+                             case_sensitive = FALSE,
+                             max_distance = 0.4,
+                             warn = TRUE,
+                             gradient = FALSE,
+                             spread = 0.10,
+                             along = c("lightness", "chroma")) {
+  along <- match.arg(along)
+  sources <- as.character(sources)
+  m <- energypal_match(sources, palette = palette, file = file, method = method,
+                            case_sensitive = case_sensitive, max_distance = max_distance,
+                            warn = warn, include_full_palette = FALSE)
 
+  pos <- match(sources, m$original)
+  col <- m$color[pos]
+  matched <- m$matched[pos]
+  col[is.na(col)] <- unmapped_color
 
+  if (gradient) col <- .apply_gradient(col, matched, spread, along)
+  stats::setNames(col, sources)
+}
 
-
+#' @rdname energypal_colors
+#' @export
+energypal_colours <- energypal_colors

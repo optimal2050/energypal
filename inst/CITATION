@@ -3,16 +3,25 @@ citHeader("To cite energypal in publications use:")
 bibentry(
   bibtype = "Manual",
   title = "energypal: Energy-Focused Color Palettes for Data Visualization",
-  author = "Energy Developer",
-  year = "2025",
-  note = "R package version 0.0.0.9000",
+  author = person("Oleg", "Lugovoy",
+                  email = "olugovoy@optimalsolution.dev",
+                  comment = c(ORCID = "0000-0001-5546-9875")),
+  year = "2026",
+  note = "R package version 0.1.0",
   url = "https://github.com/optimal2050/energypal",
   textVersion = paste(
-    "Energy Developer (2025).",
+    "Lugovoy, O. (2026).",
     "energypal: Energy-Focused Color Palettes for Data Visualization.",
-    "R package version 0.0.0.9000.",
+    "R package version 0.1.0.",
     "https://github.com/optimal2050/energypal"
   )
 )
 
-citFooter("For references to the original color palette sources, see the COLOR_REFERENCES.md file included with the package.")
+citFooter(paste(
+  "Each palette records its own source, licence and required attribution in",
+  "inst/extdata/palettes/*.yml; inst/NOTICE summarises them and",
+  "vignette('palettes', package = 'energypal') shows each palette with its",
+  "provenance. If you publish a figure using the Global Wind Atlas or Global",
+  "Solar Atlas scales, their CC BY terms require you to reproduce the citation",
+  "in that palette's meta$attribution as well as citing this package."
+))

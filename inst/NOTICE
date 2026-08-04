@@ -1,0 +1,64 @@
+energypal
+Copyright 2026 Oleg Lugovoy
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+--------------------------------------------------------------------------------
+THIRD-PARTY CONTENT
+--------------------------------------------------------------------------------
+
+The palettes in inst/extdata/palettes/ are content rather than code. Each states
+its own terms in its `meta.license` field, and where a licence requires a
+citation, in `meta.attribution`. This file summarises them; the palette files
+are authoritative.
+
+  carriers            energypal's own colours, following IEA World Energy
+  technologies        Outlook conventions. Not reproduced from any published
+                      figure. Taxonomy branches cite their classification
+                      source individually as `_taxonomy_source`.
+
+  owid                Colours approximated from Our World in Data charts.
+                      CC BY 4.0 - attribution required.
+                      https://creativecommons.org/licenses/by/4.0/
+
+  eia, epa            Colours approximated from US federal agency figures.
+                      Public domain (17 U.S.C. 105).
+
+  ipcc                Colours approximated from IPCC AR6 WGIII Ch.3 Fig 3.8.
+                      IPCC material may be reproduced with acknowledgement.
+
+  windatlas_speed     Approximated after the Global Wind Atlas.
+                      CC BY 4.0 IGO - attribution required, and the GWA terms
+                      add a mandatory and binding condition: cite The World Bank
+                      as the data provider and reference ESMAP as the source of
+                      funding. Creative Commons ported the IGO variant at 3.0
+                      only, so the operative deed text is CC BY 4.0.
+                      https://creativecommons.org/licenses/by/4.0/
+
+  solaratlas_ghi      Extracted from Global Solar Atlas poster maps.
+  solaratlas_pvout    CC BY 4.0 - attribution required. The GSA terms add a
+                      WIPO/UNCITRAL dispute-resolution clause.
+                      https://creativecommons.org/licenses/by/4.0/
+
+The bundled dataset owid_energy_mix is from Our World in Data, CC BY 4.0.
+
+--------------------------------------------------------------------------------
+NO AFFILIATION
+--------------------------------------------------------------------------------
+
+energypal is not affiliated with, sponsored by, or endorsed by the IEA, IPCC,
+EIA, EPA, Our World in Data, the Technical University of Denmark, Vortex,
+Solargis or the World Bank Group.
+
+Palettes named after a published source approximate its appearance for
+compatibility. They are not official colour specifications, and are titled
+accordingly.

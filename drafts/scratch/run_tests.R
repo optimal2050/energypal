@@ -1,7 +1,0 @@
-cat('Running devtools::load_all + tests...\n')
-if (!requireNamespace('devtools', quietly=TRUE)) stop('devtools not installed')
-if (!requireNamespace('testthat', quietly=TRUE)) stop('testthat not installed')
-setwd('c:/Users/admin/Documents/R/energypal')
-devtools::load_all(quiet=TRUE)
-res <- testthat::test_dir('tests/testthat', reporter='summary')
-cat('Done\n')

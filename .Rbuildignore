@@ -1,5 +1,6 @@
 ^energypal\.Rproj$
 ^\.Rproj\.user$
+^LICENSE$
 ^LICENSE\.md$
 ^README\.Rmd$
 ^cran-comments\.md$
@@ -13,5 +14,9 @@
 ^\.Rhistory$
 ^\.github$
 ^\.vscode$
+^\.claude$
 ^.*\.Rcheck$
 ^.*\.tar\.gz$
+^doc$
+^Meta$
+^figure$

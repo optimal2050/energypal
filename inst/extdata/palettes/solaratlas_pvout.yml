@@ -1,0 +1,78 @@
+# Global Solar Atlas - photovoltaic power output
+#
+# Extracted from the published poster map, a downloadable Work under
+# CC BY 4.0. Legend runs 600-2400 kWh/kWp.
+#
+# energypal is not affiliated with or endorsed by Solargis or the World
+# Bank Group.
+
+meta:
+  name: "solaratlas_pvout"
+  title: "Global Solar Atlas PV output"
+  family: "solaratlas"
+  measure: "pvout"
+  type: "continuous"
+  unit: "kWh/kWp"
+  source: "Global Solar Atlas 2.0 world PVOUT poster map (World_PVOUT_poster-map_1500x800mm-300dpi)"
+  url: "https://globalsolaratlas.info"
+  license: "CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), with the mandatory WIPO/UNCITRAL dispute-resolution addition in the GSA terms of use"
+  attribution: >
+    [Data/information/map] obtained from the Global Solar Atlas 2.0, a free, web-based
+    application developed and operated by the company Solargis s.r.o. on behalf of the
+    World Bank Group, utilizing Solargis data, with funding provided by the Energy
+    Sector Management Assistance Program (ESMAP). For additional information:
+    https://globalsolaratlas.info
+  version: "0.1.0"
+
+# 24 stops, low to high
+colors:
+  - "#9173BF"
+  - "#9686D1"
+  - "#9A9BD9"
+  - "#9BB1D1"
+  - "#9DC9BE"
+  - "#A1DF9D"
+  - "#B5E882"
+  - "#D0ED68"
+  - "#E6F25C"
+  - "#FAF450"
+  - "#FAE741"
+  - "#FAD932"
+  - "#FAC923"
+  - "#F8B414"
+  - "#F5A023"
+  - "#F08737"
+  - "#E66C40"
+  - "#D94D43"
+  - "#C4394C"
+  - "#AB2C4C"
+  - "#941F44"
+  - "#7D153D"
+  - "#630E33"
+  - "#4D092A"
+
+# 23 break points -> 24 bins
+breaks:
+  - 600
+  - 682
+  - 764
+  - 845
+  - 927
+  - 1009
+  - 1091
+  - 1173
+  - 1255
+  - 1336
+  - 1418
+  - 1500
+  - 1582
+  - 1664
+  - 1745
+  - 1827
+  - 1909
+  - 1991
+  - 2073
+  - 2155
+  - 2236
+  - 2318
+  - 2400

@@ -1,37 +1,46 @@
 Package: energypal
 Title: Energy-Focused Color Palettes for Data Visualization
-Version: 0.0.0.9000
-URL: https://github.com/optimal2050/energypal
+Version: 0.1.0.9000
+Date: 2026-08-03
+URL: https://optimal2050.github.io/energypal/, https://github.com/optimal2050/energypal
 BugReports: https://github.com/optimal2050/energypal/issues
-Authors@R: 
-    person("Energy", "Developer", , "developer@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: Provides curated color palettes and intelligent mapping functions 
-    specifically designed for energy-related data visualizations. Includes 
-    palettes inspired by major energy organizations (IEA, EPA, EIA) and smart 
-    functions for mapping energy sources (coal, natural gas, renewables, etc.) 
-    to appropriate colors. Extends ggplot2 with specialized scale functions for 
-    fuel mix charts, choropleth maps, and other energy sector visualizations.
-License: AGPL (>= 3)
+Authors@R:
+    person(given = "Oleg",
+           family = "Lugovoy",
+           email = "olugovoy@optimalsolution.dev",
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-5546-9875"))
+Description: Curated colour palettes and source-matching functions for
+    energy-related data visualisation. Palettes are specified as YAML files
+    describing a hierarchy of energy carriers and technologies, alongside
+    variants approximating the colour conventions of energy publications from
+    the EIA, EPA, IPCC and Our World in Data, and continuous scales extracted
+    from the Global Wind Atlas and Global Solar Atlas poster maps. A multi-stage
+    matcher resolves the messy source labels found in real datasets to the
+    canonical hierarchy, and 'ggplot2' scale functions apply the result to
+    fuel-mix charts and other energy sector graphics. Each palette carries its
+    own provenance and licence terms. Users can supply their own palette files.
+License: Apache License (== 2)
 Depends:
-    R (>= 3.6.0)
+    R (>= 4.0.0)
 Imports:
-    ggplot2 (>= 3.3.0),
-    scales (>= 1.1.0),
+    farver (>= 2.1.0),
+    ggplot2 (>= 3.4.0),
     grDevices,
+    graphics,
+    stats,
     stringdist,
-    utils
-Suggests: 
+    utils,
+    yaml (>= 2.2.0)
+Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
     dplyr,
-    tidyr,
-    sf,
-    maps
+    gridExtra
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
-VignetteBuilder: knitr
 LazyData: true
+Config/roxygen2/version: 8.0.0
